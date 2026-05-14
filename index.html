@@ -2919,16 +2919,20 @@
        COMMENTS
     ══════════════════════════════════════════ */
     async function loadComments(id) {
-        const item = state.items.find(i => i.id === id);
-        if (item?.isMock) {
-            renderComments(id, mockCommentsFor(id));
-            return;
-        }
+        if (!supa) { renderComments(id, []); return; }
         try {
-            const r = await fetch(`${CONFIG.commentsGetUrl}?ideaId=${encodeURIComponent(id)}`, { headers: { 'Accept': 'application/json' } });
-            const payload = await r.json().catch(() => ({}));
-            const comments = Array.isArray(payload) ? payload : (payload.items || payload.comments || []);
-            renderComments(id, comments);
+            const { data, error } = await supa
+                .from('comments')
+                .select('*')
+                .eq('idea_id', id)
+                .order('created_at', { ascending: true });
+            if (error) throw error;
+            renderComments(id, (data || []).map(c => ({
+                authorName:  c.author_name || c.author_email || 'Anonymous',
+                authorEmail: c.author_email || '',
+                body:        c.body,
+                createdAt:   c.created_at
+            })));
         } catch (e) {
             $('drawerComments').innerHTML = `<div class="comments-empty">Could not load comments.</div>`;
         }
@@ -2987,12 +2991,14 @@
         }
 
         try {
-            const r = await fetch(CONFIG.commentPostUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', [CONFIG.webhookHeaderName]: CONFIG.webhookHeaderValue },
-                body: JSON.stringify({ ideaId: id, authorEmail: state.userEmail, authorName: state.userEmail, body })
+            if (!supa) throw new Error('Database not available');
+            const { error } = await supa.from('comments').insert({
+                idea_id:      id,
+                author_email: state.userEmail,
+                author_name:  state.userEmail,
+                body
             });
-            if (!r.ok) throw new Error();
+            if (error) throw error;
             $('drawerCompose').value = '';
             await loadComments(id);
             item.commentCount = (item.commentCount || 0) + 1;
