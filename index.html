@@ -909,7 +909,9 @@
         .status-badge.status-approved     { color: var(--purple);  border-color: var(--purple); }
         .status-badge.status-in-progress  { color: var(--blue);    border-color: var(--blue); }
         .status-badge.status-done         { color: var(--teal);    border-color: var(--teal); }
-        .status-badge.status-on-hold      { color: var(--gray-400);border-color: var(--gray-500); }
+        .status-badge.status-on-hold           { color: var(--gray-400); border-color: var(--gray-500); }
+        .status-badge.status-pending-approval  { color: var(--amber);    border-color: var(--amber); }
+        .status-badge.status-declined          { color: var(--gray-500); border-color: var(--gray-600); background: rgba(85,85,85,0.1); }
 
         .private-badge {
             display: inline-flex;
@@ -2495,7 +2497,7 @@
             <div class="success-screen" id="successScreen">
                 <div class="success-icon">✓</div>
                 <h2>Signal <span>received</span></h2>
-                <p>Your idea is in orbit. You'll see it on the board, and the Innovation Team will pick it up from here.</p>
+                <p>Your idea has been submitted. The Innovation Team will review it and publish it to the board once approved.</p>
                 <button class="btn btn-primary" id="successClose" style="flex:0;">Back to Board</button>
             </div>
         </div>
@@ -2516,12 +2518,14 @@
             <div class="modal-section">
                 <label for="reviewModalStatus">New Status</label>
                 <select id="reviewModalStatus">
+                    <option value="Pending Approval">Pending Approval</option>
                     <option value="New">New</option>
                     <option value="Under Review">Under Review</option>
                     <option value="Approved">Approved</option>
                     <option value="In Progress">In Progress</option>
                     <option value="Done">Done</option>
                     <option value="On Hold">On Hold</option>
+                    <option value="Declined">Declined</option>
                 </select>
             </div>
             <div class="modal-section">
@@ -2625,10 +2629,13 @@
         webhookHeaderName:  "x-innovation-key",
         webhookHeaderValue: "bv-innovation-2026-form-secret-9Kx72LmP",
 
+        notificationWebhookUrl: '', // paste your Power Automate HTTP trigger URL here
+
         teamOptions: ["Sales", "HR", "Support", "Operations", "AP", "Marketing", "Innovation"],
         reviewerEmails: ["jordan@byblosvista.com"],
         leaderEmails:   ["jordan@byblosvista.com"],
         statusOptions:  ["New", "Under Review", "Approved", "In Progress", "Done", "On Hold"],
+        adminStatusOptions: ["Pending Approval", "New", "Under Review", "Approved", "In Progress", "Done", "On Hold", "Declined"],
         staleAfterDays: 7
     };
 
@@ -3302,7 +3309,7 @@
         if (!supa) { alert('Database not available. Please try again.'); btn.disabled = false; btn.textContent = 'Launch Idea'; return; }
 
         try {
-            const { error } = await supa.from('ideas').insert({
+            const { data: inserted, error } = await supa.from('ideas').insert({
                 title:           description,
                 description:     description,
                 problem:         problem,
@@ -3310,10 +3317,28 @@
                 submitter_email: email,
                 team:            yourTeam,
                 is_private:      isPrivate,
-                status:          'new',
+                status:          'Pending Approval',
                 votes:           0
-            });
+            }).select('id').single();
             if (error) throw error;
+
+            // notify admins via Power Automate (fire-and-forget)
+            if (CONFIG.notificationWebhookUrl) {
+                fetch(CONFIG.notificationWebhookUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        ideaId:         inserted?.id || '',
+                        submitterName:  name,
+                        submitterEmail: email,
+                        team:           yourTeam,
+                        description,
+                        problem,
+                        isPrivate
+                    })
+                }).catch(() => {});
+            }
+
             $('innovationForm').style.display = 'none';
             $('successScreen').style.display = 'block';
             setTimeout(() => bootBoard(), 1500);
@@ -3564,22 +3589,26 @@
 
     function statusColor(s) {
         const k = statusKey(s);
-        if (k === 'new')          return 'var(--red)';
-        if (k === 'under-review') return 'var(--amber)';
-        if (k === 'approved')     return 'var(--purple)';
-        if (k === 'in-progress')  return 'var(--blue)';
-        if (k === 'done')         return 'var(--teal)';
+        if (k === 'new')               return 'var(--red)';
+        if (k === 'under-review')      return 'var(--amber)';
+        if (k === 'approved')          return 'var(--purple)';
+        if (k === 'in-progress')       return 'var(--blue)';
+        if (k === 'done')              return 'var(--teal)';
+        if (k === 'pending-approval')  return 'var(--amber)';
+        if (k === 'declined')          return 'var(--gray-600)';
         return 'var(--gray-500)';
     }
     function statusBadgeStyle(s) {
         const k = statusKey(s);
         const map = {
-            'new':          'background:rgba(226,75,74,0.12);color:var(--red)',
-            'under-review': 'background:rgba(240,160,75,0.12);color:var(--amber)',
-            'approved':     'background:rgba(179,157,219,0.12);color:var(--purple)',
-            'in-progress':  'background:rgba(14,119,116,0.12);color:var(--blue)',
-            'done':         'background:rgba(118,189,121,0.12);color:var(--teal)',
-            'on-hold':      'background:rgba(85,85,85,0.2);color:var(--gray-400)',
+            'new':              'background:rgba(226,75,74,0.12);color:var(--red)',
+            'under-review':     'background:rgba(240,160,75,0.12);color:var(--amber)',
+            'approved':         'background:rgba(179,157,219,0.12);color:var(--purple)',
+            'in-progress':      'background:rgba(14,119,116,0.12);color:var(--blue)',
+            'done':             'background:rgba(118,189,121,0.12);color:var(--teal)',
+            'on-hold':          'background:rgba(85,85,85,0.2);color:var(--gray-400)',
+            'pending-approval': 'background:rgba(240,160,75,0.12);color:var(--amber)',
+            'declined':         'background:rgba(85,85,85,0.15);color:var(--gray-500)',
         };
         return map[k] || map['on-hold'];
     }
@@ -3905,7 +3934,7 @@
                     </div>
                 </div>
                 <select class="admin-status-select" id="adminStatusSelect">
-                    ${['New','Under Review','Approved','In Progress','Done','On Hold'].map(s =>
+                    ${CONFIG.adminStatusOptions.map(s =>
                         `<option value="${s}" ${status === s ? 'selected' : ''}>${s}</option>`
                     ).join('')}
                 </select>
@@ -3917,6 +3946,18 @@
                     <div class="admin-progress-fill" style="width:${pct}%"></div>
                 </div>
             </div>
+
+            ${status === 'Pending Approval' ? `
+            <div style="margin-top:16px;padding:16px 18px;background:rgba(240,160,75,0.08);border:1px solid rgba(240,160,75,0.3);border-left:3px solid var(--amber);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+                <div>
+                    <div style="font-size:12px;font-weight:700;color:var(--amber);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:3px;">Awaiting Review</div>
+                    <div style="font-size:12px;color:var(--gray-400);">This idea is not on the board yet. Approve to publish it, or decline to keep it hidden.</div>
+                </div>
+                <div style="display:flex;gap:8px;flex-shrink:0;">
+                    <button id="quickApproveBtn" style="padding:8px 18px;background:var(--blue);border:none;color:#000;font-size:12px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;font-family:Inter,sans-serif;">Approve</button>
+                    <button id="quickDeclineBtn" style="padding:8px 18px;background:transparent;border:1px solid rgba(226,75,74,0.5);color:var(--red);font-size:12px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;font-family:Inter,sans-serif;">Decline</button>
+                </div>
+            </div>` : ''}
 
             <div class="admin-section-card" style="margin-top:16px;">
                 <div class="admin-section-header">
@@ -3956,6 +3997,24 @@
             </div>`;
 
         $('adminBackBtn').onclick = () => loadAdminProjects().then(renderAdminDashboard);
+
+        if ($('quickApproveBtn')) {
+            $('quickApproveBtn').onclick = async () => {
+                await updateIdeaStatus(project.id, 'New');
+                project.status = 'New';
+                await loadAdminProjects();
+                renderProjectDetail(project);
+                bootBoard();
+            };
+        }
+        if ($('quickDeclineBtn')) {
+            $('quickDeclineBtn').onclick = async () => {
+                await updateIdeaStatus(project.id, 'Declined');
+                project.status = 'Declined';
+                await loadAdminProjects();
+                renderProjectDetail(project);
+            };
+        }
         $('adminStatusSelect').onchange = async (e) => { await updateIdeaStatus(project.id, e.target.value); };
         $('addTaskBtn').onclick = async () => {
             const title      = $('newTaskTitle').value.trim();
@@ -3999,10 +4058,17 @@
                 soft: false,
                 onConfirm: async () => {
                     if (!supa) return;
-                    await supa.from('tasks').delete().eq('idea_id', project.id);
-                    await supa.from('ideas').delete().eq('id', project.id);
-                    await loadAdminProjects();
-                    renderAdminDashboard();
+                    try {
+                        const { error: taskErr } = await supa.from('tasks').delete().eq('idea_id', project.id);
+                        if (taskErr) throw taskErr;
+                        const { error: ideaErr } = await supa.from('ideas').delete().eq('id', project.id);
+                        if (ideaErr) throw ideaErr;
+                        adminState.projects = adminState.projects.filter(p => p.id !== project.id);
+                        renderAdminDashboard();
+                        bootBoard();
+                    } catch (e) {
+                        alert('Delete failed: ' + (e.message || e.details || JSON.stringify(e)));
+                    }
                 }
             });
         };
@@ -4033,9 +4099,21 @@
             </div>`;
     }
 
+    async function restoreAdminSession() {
+        if (!supa) return;
+        try {
+            const { data: { session } } = await supa.auth.getSession();
+            if (session?.user && ADMIN_EMAILS.includes(session.user.email)) {
+                adminUser = session.user;
+                await openAdminPanel();
+            }
+        } catch (e) { /* no session */ }
+    }
+
     // ── WIRE UP ADMIN EVENTS ──
     initSupabase();
     initializeTeamsHost().then(() => bootBoard());
+    restoreAdminSession();
     $('adminOpenBtn').addEventListener('click', openAdminLogin);
     $('adminLoginClose').addEventListener('click', closeAdminLogin);
     $('adminLoginBackdrop').addEventListener('click', (e) => { if (e.target.id === 'adminLoginBackdrop') closeAdminLogin(); });
