@@ -2819,7 +2819,7 @@
                 submitterName:       row.submitter_name || '',
                 submitterEmail:      String(row.submitter_email || '').trim().toLowerCase(),
                 yourTeam:            row.team || '',
-                beneficiaryTeamsCsv: '',
+                beneficiaryTeamsCsv: Array.isArray(row.beneficiary_teams) ? row.beneficiary_teams.join(', ') : (row.beneficiary_teams || ''),
                 description:         row.title || '',
                 problem:             row.problem || '',
                 status:              row.status || 'new',
@@ -3317,7 +3317,7 @@
                 submitter_name:    name,
                 submitter_email:   email,
                 team:              yourTeam,
-                beneficiary_teams: beneficiaryTeams.join(', '),
+                beneficiary_teams: beneficiaryTeams,
                 is_private:        isPrivate,
                 status:            'Pending Approval',
                 votes:             0
@@ -3926,7 +3926,9 @@
         const team   = esc(project.team || project.your_team || '—');
         const visibilityLabel = project.is_private ? 'Private' : 'Public';
         const visibilityColor = project.is_private ? 'var(--amber)' : 'var(--blue)';
-        const beneficiaries   = (project.beneficiary_teams || '').split(',').map(t => t.trim()).filter(Boolean);
+        const beneficiaries   = Array.isArray(project.beneficiary_teams)
+            ? project.beneficiary_teams.filter(Boolean)
+            : (project.beneficiary_teams || '').split(',').map(t => t.trim()).filter(Boolean);
 
         $('adminContent').innerHTML = `
             <div class="admin-back-row">
