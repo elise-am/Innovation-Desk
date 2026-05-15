@@ -1843,11 +1843,7 @@
         .admin-nav-item.active { background: rgba(14,119,116,0.18); color: var(--blue); }
         .admin-nav-item .admin-nav-icon { font-size: 15px; flex-shrink: 0; }
         .admin-nav-divider { height: 1px; background: rgba(255,255,255,0.05); margin: 6px 8px; }
-        .admin-sidebar-user {
-            padding: 14px 16px;
-            border-top: 1px solid rgba(14,119,116,0.12);
-            display: flex; align-items: center; gap: 10px;
-        }
+        .admin-sidebar-user { display: none; }
         .admin-avatar {
             width: 32px; height: 32px; border-radius: 50%;
             background: rgba(14,119,116,0.2);
@@ -1877,6 +1873,12 @@
             border-bottom: 1px solid rgba(14,119,116,0.15);
             padding: 0 24px; display: flex; align-items: center; gap: 12px;
             flex-shrink: 0;
+        }
+        .admin-topbar-user {
+            margin-left: auto;
+            display: flex; align-items: center; gap: 12px;
+            padding-left: 20px;
+            border-left: 1px solid rgba(14,119,116,0.18);
         }
         .admin-page-title {
             font-size: 13px; font-weight: 800; letter-spacing: 0.1em;
@@ -2593,20 +2595,20 @@
             </div>
         </div>
 
-        <div class="admin-sidebar-user">
-            <div class="admin-avatar" id="adminAvatarInitials">—</div>
-            <div class="admin-user-info">
-                <div class="admin-user-name" id="adminUserName">—</div>
-                <div class="admin-user-role">Innovation Admin</div>
-            </div>
-            <button class="admin-logout-btn" id="adminLogoutBtn" title="Sign out">⏻</button>
-        </div>
     </div>
 
     <!-- Main -->
     <div class="admin-main">
         <div class="admin-topbar">
             <div class="admin-page-title" id="adminPageTitle">Dashboard</div>
+            <div class="admin-topbar-user">
+                <div class="admin-avatar" id="adminAvatarInitials">—</div>
+                <div class="admin-user-info">
+                    <div class="admin-user-name" id="adminUserName">—</div>
+                    <div class="admin-user-role">Innovation Admin</div>
+                </div>
+                <button class="admin-logout-btn" id="adminLogoutBtn" title="Sign out">⏻</button>
+            </div>
         </div>
         <div class="admin-content" id="adminContent">
             <div class="admin-empty" style="padding:40px; text-align:center;">Loading…</div>
