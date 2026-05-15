@@ -2073,6 +2073,26 @@
             gap: 12px; margin-bottom: 20px;
         }
 
+        /* ── ADMIN SEARCH ── */
+        .admin-search-wrap {
+            position: relative; flex-shrink: 0;
+        }
+        .admin-search-wrap svg {
+            position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+            color: var(--gray-500); pointer-events: none; z-index: 1;
+        }
+        input.admin-search-input {
+            background: var(--bg-card); border: 1px solid rgba(14,119,116,0.2);
+            color: var(--white); font-family: Inter, sans-serif;
+            font-size: 12px; padding: 7px 12px 7px 32px;
+            width: 220px; transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        input.admin-search-input::placeholder { color: var(--gray-600); }
+        input.admin-search-input:focus {
+            outline: none; border-color: var(--blue);
+            box-shadow: 0 0 0 1px var(--blue);
+        }
+
         /* ── ADMIN CONTROL BAR ── */
         .admin-controls {
             display: flex; align-items: center; gap: 8px;
@@ -2121,6 +2141,15 @@
             transition: all 0.12s;
         }
         .admin-checkbox.checked { background: var(--blue); border-color: var(--blue); }
+        .admin-filter-apply-btn {
+            display: block; width: 100%;
+            padding: 8px 12px; background: var(--blue); color: #000;
+            border: none; border-top: 1px solid rgba(14,119,116,0.25);
+            font-size: 11px; font-weight: 800; letter-spacing: 0.1em;
+            text-transform: uppercase; cursor: pointer;
+            font-family: Inter, sans-serif; transition: all 0.15s; text-align: center;
+        }
+        .admin-filter-apply-btn:hover { background: #0a5e5c; color: #fff; }
         .admin-list-table th.sortable { cursor: pointer; }
         .admin-list-table th.sortable:hover { color: var(--white); }
         .sort-arrow { opacity: 0.3; font-size: 10px; margin-left: 3px; }
@@ -2143,27 +2172,41 @@
         .admin-groupby-btn.active { border-color: var(--blue); color: var(--blue); background: rgba(14,119,116,0.1); }
 
         /* ── ADMIN KANBAN ── */
+        .admin-kanban-wrap {
+            height: calc(100vh - 342px); min-height: 360px;
+            overflow: hidden; display: flex; flex-direction: column;
+        }
         .admin-kanban {
-            display: flex; gap: 12px;
-            overflow-x: auto; padding-bottom: 16px; align-items: flex-start;
+            display: flex; gap: 10px; flex: 1;
+            overflow-x: auto; overflow-y: hidden; align-items: stretch;
         }
         .admin-kanban::-webkit-scrollbar { height: 6px; }
         .admin-kanban::-webkit-scrollbar-track { background: rgba(255,255,255,0.03); }
         .admin-kanban::-webkit-scrollbar-thumb { background: rgba(14,119,116,0.3); border-radius: 3px; }
         .admin-kcolumn {
-            width: 230px; flex-shrink: 0;
+            flex: 1; min-width: 200px;
             background: var(--bg-card); border: 1px solid rgba(14,119,116,0.15);
-            display: flex; flex-direction: column;
+            display: flex; flex-direction: column; overflow: hidden;
         }
         .admin-kcolumn-header {
-            padding: 10px 12px; border-bottom: 1px solid rgba(14,119,116,0.12);
+            padding: 10px 14px; border-bottom: 1px solid rgba(14,119,116,0.12);
             display: flex; align-items: center; justify-content: space-between;
+            flex-shrink: 0;
         }
         .admin-kcolumn-title {
             font-size: 10px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase;
         }
-        .admin-kcolumn-count { font-size: 11px; color: var(--gray-500); font-weight: 600; }
-        .admin-kcolumn-body { padding: 8px; display: flex; flex-direction: column; gap: 6px; min-height: 60px; }
+        .admin-kcolumn-count {
+            font-size: 11px; color: var(--gray-500); font-weight: 600;
+            background: rgba(255,255,255,0.06); padding: 1px 8px; border-radius: 10px;
+        }
+        .admin-kcolumn-body {
+            padding: 8px; display: flex; flex-direction: column; gap: 6px;
+            flex: 1; overflow-y: auto; min-height: 0;
+        }
+        .admin-kcolumn-body::-webkit-scrollbar { width: 4px; }
+        .admin-kcolumn-body::-webkit-scrollbar-track { background: transparent; }
+        .admin-kcolumn-body::-webkit-scrollbar-thumb { background: rgba(14,119,116,0.25); border-radius: 2px; }
         .admin-kcard {
             background: var(--bg-card-2); border: 1px solid rgba(255,255,255,0.06);
             padding: 10px 12px; cursor: pointer; transition: border-color 0.15s, background 0.15s;
@@ -2326,6 +2369,99 @@
             letter-spacing: 0.03em;
         }
 
+        /* ══════════ VIEW IN LIST BUTTON ══════════ */
+        .view-list-btn {
+            margin-top: 1.1rem;
+            pointer-events: auto;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: transparent;
+            border: 1px solid var(--blue-border);
+            color: var(--blue);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9px;
+            font-weight: 600;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            padding: 7px 14px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .view-list-btn:hover { background: rgba(14,119,116,0.1); border-color: var(--blue); color: var(--white); }
+        body.main-list-mode .view-list-btn { display: none !important; }
+
+        /* ══════════ MAIN LIST MODE ══════════ */
+        body.main-list-mode .board-hero p { display: none; }
+        body.main-list-mode .legend       { display: none; }
+        body.main-list-mode .fab          { display: none; }
+        body.main-list-mode .focus-toggle-btn { display: none; }
+        body.main-list-mode #constellation { opacity: 0; pointer-events: none; }
+        body.main-list-mode .empty-state  { display: none !important; }
+
+        /* main list overlay */
+        .main-list-view {
+            position: absolute; inset: 0; z-index: 6;
+            display: none; overflow: hidden;
+        }
+        .main-list-view.open { display: block; }
+        .main-list-scroll {
+            height: 100%;
+            overflow-y: auto;
+            padding: 250px 2.5rem 3rem;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border-strong) transparent;
+        }
+        .main-list-scroll::-webkit-scrollbar { width: 4px; }
+        .main-list-scroll::-webkit-scrollbar-track { background: transparent; }
+        .main-list-scroll::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
+
+        /* sortable table headers */
+        .sortable-th {
+            cursor: pointer;
+            user-select: none;
+            transition: color 0.15s;
+            white-space: nowrap;
+        }
+        .sortable-th:hover { color: var(--blue); }
+        .sort-indicator {
+            display: inline-block;
+            margin-left: 4px;
+            opacity: 0.35;
+            font-size: 9px;
+            letter-spacing: 0;
+        }
+        .sortable-th.sort-asc  .sort-indicator { opacity: 1; color: var(--blue); }
+        .sortable-th.sort-desc .sort-indicator { opacity: 1; color: var(--blue); }
+
+        /* back button at bottom */
+        .main-list-footer {
+            display: flex;
+            justify-content: center;
+            padding: 2.5rem 0 1rem;
+        }
+        .back-to-orbit-btn {
+            background: transparent;
+            border: 1px solid var(--border-strong);
+            color: var(--gray-500);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            padding: 11px 28px;
+            cursor: pointer;
+            transition: all 0.18s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .back-to-orbit-btn:hover { border-color: var(--blue); color: var(--blue); }
+
+        /* date cell */
+        .list-date { color: var(--gray-500); font-size: 11px; font-family: 'JetBrains Mono', monospace; }
+        .list-email { color: var(--gray-500); font-size: 12px; font-family: 'JetBrains Mono', monospace; }
+
         /* ══════════ CONFIRM MODAL ══════════ */
         .confirm-backdrop {
             position: fixed; inset: 0; z-index: 999;
@@ -2424,6 +2560,10 @@
                     <div class="board-stat"><strong id="statShipped">—</strong>Shipped</div>
                     <div class="board-stat"><strong class="stat-blue" id="statVotes">—</strong>Upvotes</div>
                 </div>
+                <button type="button" id="viewListBtn" class="view-list-btn">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                    View in a list
+                </button>
             </div>
 
             <div class="filter-rail">
@@ -2468,6 +2608,30 @@
                 </svg>
                 Focus
             </button>
+
+            <!-- main list view (standalone list mode from main board) -->
+            <div id="mainListView" class="main-list-view">
+                <div class="main-list-scroll" id="mainListScroll">
+                    <table class="list-table" id="mainListTable">
+                        <thead>
+                            <tr>
+                                <th class="sortable-th" data-col="description">Idea <span class="sort-indicator">↕</span></th>
+                                <th class="sortable-th" data-col="status">Status <span class="sort-indicator">↕</span></th>
+                                <th class="sortable-th" data-col="submitterEmail">Submitted By <span class="sort-indicator">↕</span></th>
+                                <th class="sortable-th" data-col="yourTeam">Team <span class="sort-indicator">↕</span></th>
+                                <th class="sortable-th" data-col="receivedAt">Date <span class="sort-indicator">↕</span></th>
+                            </tr>
+                        </thead>
+                        <tbody id="mainListBody"></tbody>
+                    </table>
+                    <div class="main-list-footer">
+                        <button type="button" id="backToOrbitBtn" class="back-to-orbit-btn">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+                            Back to main view
+                        </button>
+                    </div>
+                </div>
+            </div>
 
             <!-- list view (shown inside board, replaces constellation in list mode) -->
             <div class="list-overlay" id="listOverlay">
@@ -2547,7 +2711,6 @@
 <aside class="drawer" id="detailDrawer" aria-hidden="true">
     <div class="drawer-head">
         <div class="drawer-eyebrow">
-            <span class="drawer-id" id="drawerId">—</span>
             <button class="drawer-close" id="drawerClose" aria-label="Close">×</button>
         </div>
         <h2 class="drawer-title" id="drawerTitle">—</h2>
@@ -2942,8 +3105,7 @@
         if (status !== 'All' && (item.status || 'New') !== status) return false;
         if (team !== 'All') {
             const myTeam = (item.yourTeam || '').toLowerCase();
-            const benf = String(item.beneficiaryTeamsCsv || '').toLowerCase();
-            if (myTeam !== team.toLowerCase() && !benf.includes(team.toLowerCase())) return false;
+            if (myTeam !== team.toLowerCase()) return false;
         }
         if (q) {
             const hay = `${item.description} ${item.problem} ${item.yourTeam} ${item.beneficiaryTeamsCsv} ${item.submitterName}`.toLowerCase();
@@ -2958,6 +3120,7 @@
             b.classList.toggle('hidden-by-filter', !pass);
         });
         if (focusListMode) renderListView();
+        if (mainListMode) renderMainListView();
     }
 
     /* ══════════════════════════════════════════
@@ -2981,7 +3144,7 @@
                 submitterEmail:      String(row.submitter_email || '').trim().toLowerCase(),
                 yourTeam:            row.team || '',
                 beneficiaryTeamsCsv: Array.isArray(row.beneficiary_teams) ? row.beneficiary_teams.join(', ') : (row.beneficiary_teams || ''),
-                description:         row.title || '',
+                description:         row.title || row.description || '',
                 problem:             row.problem || '',
                 status:              row.status || 'new',
                 isPrivate:           row.is_private === true,
@@ -3219,7 +3382,6 @@
         if (!item) return;
         state.drawerId = id;
 
-        $('drawerId').textContent = `IDEA·${(item.id || '').slice(0, 8).toUpperCase()}`;
         $('drawerTitle').textContent = deriveTitle(item.description);
         $('drawerMeta').innerHTML = `
             <span class="status-badge status-${statusKey(item.status)}">${esc(item.status || 'New')}</span>
@@ -3750,6 +3912,97 @@
         $('listOverlay').classList.add('open');
     }
 
+    /* ══════════════════════════════════════════
+       MAIN LIST MODE
+    ══════════════════════════════════════════ */
+    let mainListMode = false;
+    let mainListSort = { col: 'receivedAt', dir: 'desc' };
+
+    function enterMainListMode() {
+        mainListMode = true;
+        document.body.classList.add('main-list-mode');
+        $('listOverlay').classList.remove('open');
+        focusListMode = false;
+        renderMainListView();
+        $('mainListView').classList.add('open');
+        $('mainListScroll').scrollTop = 0;
+    }
+
+    function exitMainListMode() {
+        mainListMode = false;
+        document.body.classList.remove('main-list-mode');
+        $('mainListView').classList.remove('open');
+    }
+
+    function fmtDate(iso) {
+        if (!iso) return '—';
+        try {
+            return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+        } catch (e) { return '—'; }
+    }
+
+    function renderMainListView() {
+        if (!mainListMode) return;
+        let items = state.items.filter(passesFilters);
+
+        const { col, dir } = mainListSort;
+        items = items.slice().sort((a, b) => {
+            let va = a[col] ?? '';
+            let vb = b[col] ?? '';
+            if (col === 'upvoteCount') { va = Number(va); vb = Number(vb); }
+            else if (col === 'receivedAt') { va = va || ''; vb = vb || ''; }
+            else { va = String(va).toLowerCase(); vb = String(vb).toLowerCase(); }
+            if (va < vb) return dir === 'asc' ? -1 : 1;
+            if (va > vb) return dir === 'asc' ? 1 : -1;
+            return 0;
+        });
+
+        // update sort indicators on headers
+        document.querySelectorAll('#mainListTable .sortable-th').forEach(th => {
+            th.classList.remove('sort-asc', 'sort-desc');
+            const ind = th.querySelector('.sort-indicator');
+            if (th.dataset.col === col) {
+                th.classList.add(dir === 'asc' ? 'sort-asc' : 'sort-desc');
+                if (ind) ind.textContent = dir === 'asc' ? '↑' : '↓';
+            } else {
+                if (ind) ind.textContent = '↕';
+            }
+        });
+
+        const tbody = $('mainListBody');
+        if (!items.length) {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--gray-500);padding:3rem 0;font-size:13px;">No ideas match the current filters.</td></tr>`;
+            return;
+        }
+        tbody.innerHTML = items.map(item => `
+            <tr onclick="openDrawer('${esc(item.id)}')">
+                <td>
+                    <span class="list-status-dot" style="background:${statusColor(item.status)};color:${statusColor(item.status)};"></span>
+                    <span class="list-title">${esc(item.description)}</span>
+                </td>
+                <td><span class="list-badge" style="${statusBadgeStyle(item.status)}">${esc(item.status)}</span></td>
+                <td class="list-email">${esc(item.submitterEmail || item.submitterName || '—')}</td>
+                <td class="list-team">${esc(item.yourTeam || '—')}</td>
+                <td class="list-date">${fmtDate(item.receivedAt)}</td>
+            </tr>`).join('');
+    }
+
+    // wire up column sort clicks (done after DOM ready)
+    function initMainListSortHeaders() {
+        document.querySelectorAll('#mainListTable .sortable-th').forEach(th => {
+            th.addEventListener('click', () => {
+                const c = th.dataset.col;
+                if (mainListSort.col === c) {
+                    mainListSort.dir = mainListSort.dir === 'asc' ? 'desc' : 'asc';
+                } else {
+                    mainListSort.col = c;
+                    mainListSort.dir = c === 'receivedAt' ? 'desc' : 'asc';
+                }
+                renderMainListView();
+            });
+        });
+    }
+
     function statusColor(s) {
         const k = statusKey(s);
         if (k === 'new')               return 'var(--red)';
@@ -3803,6 +4056,7 @@
         state.items = await fetchItems();
         renderConstellation();
         if (focusListMode) renderListView();
+        if (mainListMode) renderMainListView();
     }
 
     buildYourTeamDropdown();
@@ -3823,6 +4077,9 @@
     $('focusExitBtn').addEventListener('click', exitFocus);
     $('focusOrbitBtn').addEventListener('click', showOrbitView);
     $('focusListBtn').addEventListener('click', showListView);
+    $('viewListBtn').addEventListener('click', enterMainListMode);
+    $('backToOrbitBtn').addEventListener('click', exitMainListMode);
+    initMainListSortHeaders();
     $('submitClose').addEventListener('click', closeSubmit);
     $('submitBackdrop').addEventListener('click', (e) => { if (e.target.id === 'submitBackdrop') closeSubmit(); });
     $('formCancel').addEventListener('click', closeSubmit);
@@ -3850,11 +4107,24 @@
     });
     $('yourTeam').addEventListener('change', () => { if ($('yourTeam').value) $('yourTeamError').style.display = 'none'; });
 
-    // search
+    // search — opens list overlay so results are readable (skip if in main list mode)
     let searchT = null;
     $('searchInput').addEventListener('input', (e) => {
         clearTimeout(searchT);
-        searchT = setTimeout(() => { state.filters.search = e.target.value; applyConstellationFilters(); }, 180);
+        searchT = setTimeout(() => {
+            state.filters.search = e.target.value;
+            if (!mainListMode) {
+                if (e.target.value.trim()) {
+                    focusListMode = true;
+                    renderListView();
+                    $('listOverlay').classList.add('open');
+                } else {
+                    focusListMode = false;
+                    $('listOverlay').classList.remove('open');
+                }
+            }
+            applyConstellationFilters();
+        }, 180);
     });
 
     // drawer
@@ -3903,7 +4173,10 @@
         visibleStatuses: null,
         visibleTeams: null,
         filters: { statuses: [], teams: [], privacy: [], creators: [] },
-        listSort: { col: 'date', dir: 'desc' }
+        pendingFilters: { statuses: [], teams: [], privacy: [], creators: [] },
+        listSort: { col: 'date', dir: 'desc' },
+        pendingCols: [],
+        searchQuery: ''
     };
 
     function initSupabase() {
@@ -4021,6 +4294,7 @@
     // ── FILTER HELPERS ──
     function getFilteredIdeas() {
         const f = adminState.filters;
+        const q = (adminState.searchQuery || '').trim().toLowerCase();
         return adminState.projects.filter(idea => {
             if (f.statuses.length && !f.statuses.includes(idea.status)) return false;
             const ideaTeam = idea.team || idea.your_team || '';
@@ -4033,6 +4307,18 @@
                 const name = idea.submitter_name || idea.submitter_email || '';
                 if (!f.creators.includes(name)) return false;
             }
+            if (q) {
+                const ben = Array.isArray(idea.beneficiary_teams)
+                    ? idea.beneficiary_teams.join(' ')
+                    : (idea.beneficiary_teams || '');
+                const hay = [
+                    idea.title || '', idea.description || '', idea.problem || '',
+                    idea.team || idea.your_team || '',
+                    idea.submitter_name || '', idea.submitter_email || '',
+                    ben, idea.review_notes || '', idea.status || ''
+                ].join(' ').toLowerCase();
+                if (!hay.includes(q)) return false;
+            }
             return true;
         });
     }
@@ -4044,10 +4330,10 @@
         $('adminPageTitle').textContent = '';
 
         const p = adminState.projects;
-        const total    = p.length;
-        const underRev = p.filter(x => (x.status||'').toLowerCase() === 'under review').length;
-        const approved = p.filter(x => (x.status||'').toLowerCase() === 'approved').length;
-        const shipped  = p.filter(x => (x.status||'').toLowerCase() === 'done').length;
+        const total      = p.length;
+        const newCount   = p.filter(x => (x.status||'').toLowerCase() === 'new').length;
+        const inProgress = p.filter(x => (x.status||'').toLowerCase() === 'in progress').length;
+        const shipped    = p.filter(x => (x.status||'').toLowerCase() === 'done').length;
         const f        = adminState.filters;
 
         const allStatuses = CONFIG.adminStatusOptions;
@@ -4067,7 +4353,7 @@
             return `<div class="admin-filter-pill ${hasFilter ? 'active' : ''}" id="fpill_${id}">
                 ${label}${hasFilter ? `&nbsp;<span class="pill-count">${selected.length}</span>` : ' ▾'}
                 <div class="admin-filter-dropdown" id="fdrop_${id}">
-                    <div class="admin-filter-select-all" data-filter="${id}" data-action="selectall">
+                    <div class="admin-filter-select-all" data-filter="${id}">
                         <span class="admin-checkbox ${allSel ? 'checked' : ''}">${allSel ? '✓' : ''}</span>
                         Select All
                     </div>
@@ -4079,6 +4365,7 @@
                             </span>
                             ${esc(opt)}
                         </div>`).join('')}
+                    <button class="admin-filter-apply-btn" data-filter="${id}">Apply</button>
                 </div>
             </div>`;
         }
@@ -4092,7 +4379,7 @@
             return `<div class="admin-filter-pill ${hasFilter ? 'active' : ''}" id="fpill_privacy">
                 Privacy${hasFilter ? `&nbsp;<span class="pill-count">${sel.length}</span>` : ' ▾'}
                 <div class="admin-filter-dropdown" id="fdrop_privacy">
-                    <div class="admin-filter-select-all" data-filter="privacy" data-action="selectall">
+                    <div class="admin-filter-select-all" data-filter="privacy">
                         <span class="admin-checkbox ${allSel ? 'checked' : ''}">${allSel ? '✓' : ''}</span>
                         Select All
                     </div>
@@ -4104,6 +4391,7 @@
                             </span>
                             ${labels[opt]}
                         </div>`).join('')}
+                    <button class="admin-filter-apply-btn" data-filter="privacy">Apply</button>
                 </div>
             </div>`;
         }
@@ -4115,12 +4403,12 @@
                     <div class="admin-stat-value">${total}</div>
                 </div>
                 <div class="admin-stat-card">
-                    <div class="admin-stat-label">Under Review</div>
-                    <div class="admin-stat-value">${underRev}</div>
+                    <div class="admin-stat-label">New</div>
+                    <div class="admin-stat-value">${newCount}</div>
                 </div>
                 <div class="admin-stat-card">
-                    <div class="admin-stat-label">Approved</div>
-                    <div class="admin-stat-value">${approved}</div>
+                    <div class="admin-stat-label">In Progress</div>
+                    <div class="admin-stat-value">${inProgress}</div>
                 </div>
                 <div class="admin-stat-card">
                     <div class="admin-stat-label">Shipped</div>
@@ -4129,6 +4417,11 @@
             </div>
 
             <div class="admin-controls">
+                <div class="admin-search-wrap">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+                    <input type="text" class="admin-search-input" id="adminSearchInput"
+                           placeholder="Search ideas…" value="${esc(adminState.searchQuery)}">
+                </div>
                 ${buildDropdown('status',  allStatuses, f.statuses,  'Status')}
                 ${buildDropdown('team',    allTeams,    f.teams,     'Team')}
                 ${buildPrivacyDropdown()}
@@ -4146,38 +4439,92 @@
 
             <div id="adminViewContainer"></div>`;
 
-        // Wire pill open/close
+        // Helper: get pending array for a filter type
+        function getPendingArr(ft) {
+            return ft === 'status' ? adminState.pendingFilters.statuses
+                 : ft === 'team'   ? adminState.pendingFilters.teams
+                 : ft === 'privacy'? adminState.pendingFilters.privacy
+                 :                   adminState.pendingFilters.creators;
+        }
+
+        // Helper: update all checkbox visuals inside a dropdown from a pending array
+        function syncDropdownUI(drop, pendingArr) {
+            drop.querySelectorAll('.admin-filter-option').forEach(opt => {
+                const on = pendingArr.includes(opt.dataset.val);
+                const cb = opt.querySelector('.admin-checkbox');
+                cb.classList.toggle('checked', on); cb.textContent = on ? '✓' : '';
+                opt.classList.toggle('selected', on);
+            });
+            const saEl = drop.querySelector('.admin-filter-select-all .admin-checkbox');
+            if (saEl) {
+                const allSel = pendingArr.length === 0;
+                saEl.classList.toggle('checked', allSel); saEl.textContent = allSel ? '✓' : '';
+            }
+        }
+
+        // Wire pill open/close — syncs pending from actual on open
         document.querySelectorAll('.admin-filter-pill').forEach(pill => {
             pill.addEventListener('click', e => {
-                if (e.target.closest('.admin-filter-option') || e.target.closest('.admin-filter-select-all')) return;
+                if (e.target.closest('.admin-filter-option')
+                    || e.target.closest('.admin-filter-select-all')
+                    || e.target.closest('.admin-filter-apply-btn')) return;
                 const dropId = pill.id.replace('fpill_', 'fdrop_');
                 const drop = $(dropId);
                 if (!drop) return;
+                const isOpening = !drop.classList.contains('open');
                 document.querySelectorAll('.admin-filter-dropdown.open').forEach(d => {
                     if (d.id !== dropId) d.classList.remove('open');
                 });
                 drop.classList.toggle('open');
+                if (isOpening) {
+                    // Sync pending to match committed state when dropdown opens
+                    const ft = pill.id.replace('fpill_', '');
+                    const pa = getPendingArr(ft);
+                    pa.length = 0; pa.push(...getArr(ft));
+                    syncDropdownUI(drop, pa);
+                }
                 e.stopPropagation();
             });
         });
 
-        // Select All
+        // Select All — updates pending + DOM only (no re-render)
         document.querySelectorAll('.admin-filter-select-all').forEach(el => {
             el.addEventListener('click', e => {
-                const arr = getArr(el.dataset.filter);
-                arr.length = 0;
-                renderAdminDashboard();
+                const pa = getPendingArr(el.dataset.filter);
+                pa.length = 0;
+                syncDropdownUI(el.closest('.admin-filter-dropdown'), pa);
                 e.stopPropagation();
             });
         });
 
-        // Individual option toggle
+        // Individual option — updates pending + DOM only (no re-render)
         document.querySelectorAll('.admin-filter-option').forEach(opt => {
             opt.addEventListener('click', e => {
-                const arr = getArr(opt.dataset.filter);
+                const pa  = getPendingArr(opt.dataset.filter);
                 const val = opt.dataset.val;
-                const idx = arr.indexOf(val);
-                if (idx >= 0) arr.splice(idx, 1); else arr.push(val);
+                const idx = pa.indexOf(val);
+                if (idx >= 0) pa.splice(idx, 1); else pa.push(val);
+                const cb = opt.querySelector('.admin-checkbox');
+                const on = pa.includes(val);
+                cb.classList.toggle('checked', on); cb.textContent = on ? '✓' : '';
+                opt.classList.toggle('selected', on);
+                const saEl = opt.closest('.admin-filter-dropdown').querySelector('.admin-filter-select-all .admin-checkbox');
+                if (saEl) {
+                    const allSel = pa.length === 0;
+                    saEl.classList.toggle('checked', allSel); saEl.textContent = allSel ? '✓' : '';
+                }
+                e.stopPropagation();
+            });
+        });
+
+        // Apply — commit pending to actual, close dropdown, re-render
+        document.querySelectorAll('.admin-filter-apply-btn').forEach(btn => {
+            btn.addEventListener('click', e => {
+                const ft = btn.dataset.filter;
+                const pa = getPendingArr(ft);
+                const actual = getArr(ft);
+                actual.length = 0; actual.push(...pa);
+                btn.closest('.admin-filter-dropdown').classList.remove('open');
                 renderAdminDashboard();
                 e.stopPropagation();
             });
@@ -4195,8 +4542,37 @@
         $('adminBoardViewBtn').addEventListener('click', () => { adminState.boardView = true;  renderAdminDashboard(); });
         $('adminListViewBtn').addEventListener('click',  () => { adminState.boardView = false; renderAdminDashboard(); });
 
+        let adminSearchTimer = null;
+        const asi = $('adminSearchInput');
+        if (asi) {
+            asi.addEventListener('input', e => {
+                clearTimeout(adminSearchTimer);
+                adminSearchTimer = setTimeout(() => {
+                    adminState.searchQuery = e.target.value;
+                    if (adminState.boardView) renderAdminBoard();
+                    else renderAdminList();
+                }, 200);
+            });
+        }
+
         if (adminState.boardView) renderAdminBoard();
         else renderAdminList();
+    }
+
+    // ── EDIT COLUMNS UI HELPER ──
+    function syncEditColsUI(drop, pendingArr) {
+        drop.querySelectorAll('.admin-filter-option').forEach(opt => {
+            const on = pendingArr.includes(opt.dataset.val);
+            const cb = opt.querySelector('.admin-checkbox');
+            cb.classList.toggle('checked', on); cb.textContent = on ? '✓' : '';
+            opt.classList.toggle('selected', on);
+        });
+        const saEl = drop.querySelector('.admin-filter-select-all .admin-checkbox');
+        if (saEl) {
+            const total = drop.querySelectorAll('.admin-filter-option').length;
+            const allSel = pendingArr.length === total;
+            saEl.classList.toggle('checked', allSel); saEl.textContent = allSel ? '✓' : '';
+        }
     }
 
     // ── KANBAN BOARD ──
@@ -4222,17 +4598,89 @@
         const ideas     = getFilteredIdeas();
         const container = $('adminViewContainer');
 
+        function buildEditColsDropdown(allOpts, vis, label, colorFn) {
+            const visArr   = allOpts.filter(o => vis.has(o));
+            const partial  = vis.size < allOpts.length;
+            const allSel   = vis.size === allOpts.length;
+            return `<div class="admin-filter-pill ${partial ? 'active' : ''}" id="editColsPill" style="position:relative;">
+                ⊞&nbsp;${label}${partial ? `&nbsp;<span class="pill-count">${vis.size}</span>` : '&nbsp;▾'}
+                <div class="admin-filter-dropdown" id="editColsDrop">
+                    <div class="admin-filter-select-all" id="editColsSelectAll">
+                        <span class="admin-checkbox ${allSel ? 'checked' : ''}">${allSel ? '✓' : ''}</span>
+                        Select All
+                    </div>
+                    ${allOpts.map(opt => `
+                        <div class="admin-filter-option" data-val="${esc(opt)}">
+                            <span class="admin-checkbox ${vis.has(opt) ? 'checked' : ''}">${vis.has(opt) ? '✓' : ''}</span>
+                            ${colorFn ? `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${colorFn(opt)};flex-shrink:0;margin-right:2px;"></span>` : ''}
+                            ${esc(opt)}
+                        </div>`).join('')}
+                    <button class="admin-filter-apply-btn" id="editColsApply">Apply</button>
+                </div>
+            </div>`;
+        }
+
+        function wireEditColsPill(allOpts, getVis, setVis) {
+            const pill = $('editColsPill');
+            const drop = $('editColsDrop');
+            if (!pill || !drop) return;
+
+            pill.addEventListener('click', e => {
+                if (e.target.closest('.admin-filter-option') ||
+                    e.target.closest('.admin-filter-select-all') ||
+                    e.target.closest('.admin-filter-apply-btn')) return;
+                const isOpening = !drop.classList.contains('open');
+                drop.classList.toggle('open');
+                if (isOpening) {
+                    adminState.pendingCols = [...getVis()];
+                    syncEditColsUI(drop, adminState.pendingCols);
+                }
+                e.stopPropagation();
+            });
+
+            $('editColsSelectAll').addEventListener('click', e => {
+                adminState.pendingCols = [...allOpts];
+                syncEditColsUI(drop, adminState.pendingCols);
+                e.stopPropagation();
+            });
+
+            drop.querySelectorAll('.admin-filter-option').forEach(opt => {
+                opt.addEventListener('click', e => {
+                    const val = opt.dataset.val;
+                    const idx = adminState.pendingCols.indexOf(val);
+                    if (idx >= 0) adminState.pendingCols.splice(idx, 1);
+                    else adminState.pendingCols.push(val);
+                    const cb = opt.querySelector('.admin-checkbox');
+                    const on = adminState.pendingCols.includes(val);
+                    cb.classList.toggle('checked', on); cb.textContent = on ? '✓' : '';
+                    opt.classList.toggle('selected', on);
+                    const saEl = drop.querySelector('.admin-filter-select-all .admin-checkbox');
+                    const allSel = adminState.pendingCols.length === allOpts.length;
+                    saEl.classList.toggle('checked', allSel); saEl.textContent = allSel ? '✓' : '';
+                    e.stopPropagation();
+                });
+            });
+
+            $('editColsApply').addEventListener('click', e => {
+                const chosen = adminState.pendingCols.length ? adminState.pendingCols : allOpts;
+                setVis(new Set(chosen));
+                drop.classList.remove('open');
+                renderAdminBoard();
+                e.stopPropagation();
+            });
+
+            document.addEventListener('click', function closeECP() {
+                drop.classList.remove('open');
+                document.removeEventListener('click', closeECP);
+            });
+        }
+
         if (adminState.groupBy === 'status') {
             const allStatuses = CONFIG.adminStatusOptions;
-            if (!adminState.visibleStatuses) adminState.visibleStatuses = new Set(allStatuses);
+            if (!adminState.visibleStatuses) {
+                adminState.visibleStatuses = new Set(['Pending Approval', 'New', 'In Progress', 'Done']);
+            }
             const vis = adminState.visibleStatuses;
-
-            const togglesHtml = allStatuses.map(st => {
-                const on = vis.has(st);
-                const color = statusColumnColor(st);
-                return `<button class="admin-col-toggle-btn" data-kind="status" data-val="${esc(st)}"
-                    style="${on ? `border-color:${color};color:${color};` : ''}">${esc(st)}</button>`;
-            }).join('');
 
             const colsHtml = allStatuses.filter(st => vis.has(st)).map(st => {
                 const colIdeas = ideas.filter(i => (i.status || 'New') === st);
@@ -4243,28 +4691,34 @@
                         <span class="admin-kcolumn-count">${colIdeas.length}</span>
                     </div>
                     <div class="admin-kcolumn-body">
-                        ${colIdeas.length ? colIdeas.map(buildAdminKCard).join('') : '<div style="font-size:11px;color:var(--gray-700);padding:4px 2px;font-style:italic;">Empty</div>'}
+                        ${colIdeas.length
+                            ? colIdeas.map(buildAdminKCard).join('')
+                            : '<div style="font-size:11px;color:var(--gray-700);padding:8px 4px;font-style:italic;">Empty</div>'}
                     </div>
                 </div>`;
             }).join('');
 
             container.innerHTML = `
-                <div style="margin-bottom:10px;display:flex;gap:5px;flex-wrap:wrap;align-items:center;">
-                    <span style="font-size:10px;color:var(--gray-600);font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-right:4px;flex-shrink:0;">Columns:</span>
-                    ${togglesHtml}
+                <div style="margin-bottom:10px;display:flex;align-items:center;justify-content:flex-end;">
+                    ${buildEditColsDropdown(allStatuses, vis, 'Edit Columns', statusColumnColor)}
                 </div>
-                <div class="admin-kanban">${colsHtml}</div>`;
+                <div class="admin-kanban-wrap">
+                    <div class="admin-kanban">${colsHtml}</div>
+                </div>`;
+
+            wireEditColsPill(
+                allStatuses,
+                () => adminState.visibleStatuses,
+                v  => { adminState.visibleStatuses = v; }
+            );
 
         } else {
-            const allTeams = [...new Set([...CONFIG.teamOptions, ...adminState.projects.map(x => x.team || x.your_team || '').filter(Boolean)])].sort();
+            const allTeams = [...new Set([
+                ...CONFIG.teamOptions,
+                ...adminState.projects.map(x => x.team || x.your_team || '').filter(Boolean)
+            ])].sort();
             if (!adminState.visibleTeams) adminState.visibleTeams = new Set(allTeams);
             const vis = adminState.visibleTeams;
-
-            const togglesHtml = allTeams.map(tm => {
-                const on = vis.has(tm);
-                return `<button class="admin-col-toggle-btn" data-kind="team" data-val="${esc(tm)}"
-                    style="${on ? 'border-color:var(--blue);color:var(--blue);' : ''}">${esc(tm)}</button>`;
-            }).join('');
 
             const colsHtml = allTeams.filter(tm => vis.has(tm)).map(tm => {
                 const colIdeas = ideas.filter(i => (i.team || i.your_team || '') === tm);
@@ -4274,36 +4728,28 @@
                         <span class="admin-kcolumn-count">${colIdeas.length}</span>
                     </div>
                     <div class="admin-kcolumn-body">
-                        ${colIdeas.length ? colIdeas.map(buildAdminKCard).join('') : '<div style="font-size:11px;color:var(--gray-700);padding:4px 2px;font-style:italic;">Empty</div>'}
+                        ${colIdeas.length
+                            ? colIdeas.map(buildAdminKCard).join('')
+                            : '<div style="font-size:11px;color:var(--gray-700);padding:8px 4px;font-style:italic;">Empty</div>'}
                     </div>
                 </div>`;
             }).join('');
 
             container.innerHTML = `
-                <div style="margin-bottom:10px;display:flex;gap:5px;flex-wrap:wrap;align-items:center;">
-                    <span style="font-size:10px;color:var(--gray-600);font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-right:4px;flex-shrink:0;">Teams:</span>
-                    ${togglesHtml}
+                <div style="margin-bottom:10px;display:flex;align-items:center;justify-content:flex-end;">
+                    ${buildEditColsDropdown(allTeams, vis, 'Edit Teams', null)}
                 </div>
-                <div class="admin-kanban">${colsHtml}</div>`;
+                <div class="admin-kanban-wrap">
+                    <div class="admin-kanban">${colsHtml}</div>
+                </div>`;
+
+            wireEditColsPill(
+                allTeams,
+                () => adminState.visibleTeams,
+                v  => { adminState.visibleTeams = v; }
+            );
         }
 
-        // Wire column toggle buttons
-        container.querySelectorAll('.admin-col-toggle-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const kind = btn.dataset.kind;
-                const val  = btn.dataset.val;
-                if (kind === 'status') {
-                    if (adminState.visibleStatuses.has(val)) adminState.visibleStatuses.delete(val);
-                    else adminState.visibleStatuses.add(val);
-                } else {
-                    if (adminState.visibleTeams.has(val)) adminState.visibleTeams.delete(val);
-                    else adminState.visibleTeams.add(val);
-                }
-                renderAdminBoard();
-            });
-        });
-
-        // Wire card clicks
         container.querySelectorAll('.admin-kcard').forEach(card => {
             card.addEventListener('click', () => openAdminProjectDetail(card.dataset.id));
         });
@@ -4356,7 +4802,7 @@
                 <table class="admin-list-table">
                     <thead>
                         <tr>
-                            ${th('title','Title')}
+                            ${th('title','Idea')}
                             ${th('status','Status')}
                             ${th('team','Team')}
                             ${th('submitter','Submitted By')}
