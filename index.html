@@ -2096,18 +2096,35 @@
         .admin-filter-dropdown {
             position: absolute; top: calc(100% + 4px); left: 0; z-index: 400;
             background: #0D1C1D; border: 1px solid rgba(14,119,116,0.3);
-            min-width: 180px; max-height: 260px; overflow-y: auto;
+            min-width: 200px;
             display: none; box-shadow: 0 8px 24px rgba(0,0,0,0.5);
         }
         .admin-filter-dropdown.open { display: block; }
+        .admin-filter-select-all {
+            padding: 8px 12px; font-size: 12px; cursor: pointer; font-weight: 700;
+            color: var(--white); display: flex; align-items: center; gap: 8px;
+            border-bottom: 1px solid rgba(14,119,116,0.15); transition: background 0.12s;
+        }
+        .admin-filter-select-all:hover { background: rgba(14,119,116,0.1); }
         .admin-filter-option {
-            padding: 8px 12px; font-size: 12px; cursor: pointer;
+            padding: 7px 12px; font-size: 12px; cursor: pointer;
             color: var(--gray-400); display: flex; align-items: center; gap: 8px;
             transition: background 0.12s;
         }
-        .admin-filter-option:hover { background: rgba(14,119,116,0.1); color: var(--white); }
-        .admin-filter-option.selected { color: var(--blue); }
-        .admin-filter-option .filter-check { width: 14px; font-size: 10px; flex-shrink: 0; }
+        .admin-filter-option:hover { background: rgba(14,119,116,0.08); color: var(--white); }
+        .admin-filter-option.selected { color: var(--white); }
+        .admin-checkbox {
+            width: 14px; height: 14px; flex-shrink: 0;
+            border: 1.5px solid rgba(14,119,116,0.45);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 9px; font-weight: 900; color: #000;
+            transition: all 0.12s;
+        }
+        .admin-checkbox.checked { background: var(--blue); border-color: var(--blue); }
+        .admin-list-table th.sortable { cursor: pointer; }
+        .admin-list-table th.sortable:hover { color: var(--white); }
+        .sort-arrow { opacity: 0.3; font-size: 10px; margin-left: 3px; }
+        .sort-arrow.active { opacity: 1; color: var(--blue); }
         .admin-controls-right { margin-left: auto; display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
         .admin-view-toggle { display: flex; border: 1px solid rgba(14,119,116,0.2); }
         .admin-view-btn {
@@ -3883,9 +3900,10 @@
     let adminState = {
         view: 'dashboard', selectedProject: null, projects: [], tasks: [],
         boardView: true, groupBy: 'status',
-        visibleStatuses: null,  // null = all visible; Set when user toggles
-        visibleTeams: null,     // null = all visible; Set when user toggles
-        filters: { statuses: [], teams: [], privacy: 'all', creators: [] }
+        visibleStatuses: null,
+        visibleTeams: null,
+        filters: { statuses: [], teams: [], privacy: [], creators: [] },
+        listSort: { col: 'date', dir: 'desc' }
     };
 
     function initSupabase() {
@@ -4007,8 +4025,10 @@
             if (f.statuses.length && !f.statuses.includes(idea.status)) return false;
             const ideaTeam = idea.team || idea.your_team || '';
             if (f.teams.length && !f.teams.includes(ideaTeam)) return false;
-            if (f.privacy === 'public'  &&  idea.is_private) return false;
-            if (f.privacy === 'private' && !idea.is_private) return false;
+            if (f.privacy.length === 1) {
+                if (f.privacy[0] === 'public'  &&  idea.is_private) return false;
+                if (f.privacy[0] === 'private' && !idea.is_private) return false;
+            }
             if (f.creators.length) {
                 const name = idea.submitter_name || idea.submitter_email || '';
                 if (!f.creators.includes(name)) return false;
@@ -4021,7 +4041,7 @@
     function renderAdminDashboard() {
         adminState.view = 'dashboard';
         adminState.selectedProject = null;
-        $('adminPageTitle').textContent = 'All Ideas';
+        $('adminPageTitle').textContent = '';
 
         const p = adminState.projects;
         const total    = p.length;
@@ -4030,19 +4050,33 @@
         const shipped  = p.filter(x => (x.status||'').toLowerCase() === 'done').length;
         const f        = adminState.filters;
 
-        const allStatuses  = CONFIG.adminStatusOptions;
-        const allTeams     = [...new Set([...CONFIG.teamOptions, ...p.map(x => x.team || x.your_team || '').filter(Boolean)])].sort();
-        const allCreators  = [...new Set(p.map(x => x.submitter_name || x.submitter_email || '').filter(Boolean))].sort();
+        const allStatuses = CONFIG.adminStatusOptions;
+        const allTeams    = [...new Set([...CONFIG.teamOptions, ...p.map(x => x.team || x.your_team || '').filter(Boolean)])].sort();
+        const allCreators = [...new Set(p.map(x => x.submitter_name || x.submitter_email || '').filter(Boolean))].sort();
 
-        function buildMultiDropdown(id, options, selected, label) {
-            const hasFilter = selected.length > 0;
+        function getArr(ft) {
+            return ft === 'status' ? adminState.filters.statuses
+                 : ft === 'team'   ? adminState.filters.teams
+                 : ft === 'privacy'? adminState.filters.privacy
+                 :                   adminState.filters.creators;
+        }
+
+        function buildDropdown(id, options, selected, label) {
+            const hasFilter = selected.length > 0 && selected.length < options.length;
+            const allSel    = selected.length === 0;
             return `<div class="admin-filter-pill ${hasFilter ? 'active' : ''}" id="fpill_${id}">
                 ${label}${hasFilter ? `&nbsp;<span class="pill-count">${selected.length}</span>` : ' ▾'}
                 <div class="admin-filter-dropdown" id="fdrop_${id}">
+                    <div class="admin-filter-select-all" data-filter="${id}" data-action="selectall">
+                        <span class="admin-checkbox ${allSel ? 'checked' : ''}">${allSel ? '✓' : ''}</span>
+                        Select All
+                    </div>
                     ${options.map(opt => `
                         <div class="admin-filter-option ${selected.includes(opt) ? 'selected' : ''}"
                              data-filter="${id}" data-val="${esc(opt)}">
-                            <span class="filter-check">${selected.includes(opt) ? '✓' : ''}</span>
+                            <span class="admin-checkbox ${selected.includes(opt) ? 'checked' : ''}">
+                                ${selected.includes(opt) ? '✓' : ''}
+                            </span>
                             ${esc(opt)}
                         </div>`).join('')}
                 </div>
@@ -4050,16 +4084,25 @@
         }
 
         function buildPrivacyDropdown() {
-            const opts = [{v:'all',l:'All'},{v:'public',l:'Public Only'},{v:'private',l:'Private Only'}];
-            const cur  = f.privacy;
-            return `<div class="admin-filter-pill ${cur !== 'all' ? 'active' : ''}" id="fpill_privacy">
-                Privacy${cur !== 'all' ? `&nbsp;<span class="pill-count">1</span>` : ' ▾'}
+            const opts   = ['public', 'private'];
+            const labels = { public: 'Public', private: 'Private' };
+            const sel    = f.privacy;
+            const allSel = sel.length === 0;
+            const hasFilter = sel.length > 0 && sel.length < opts.length;
+            return `<div class="admin-filter-pill ${hasFilter ? 'active' : ''}" id="fpill_privacy">
+                Privacy${hasFilter ? `&nbsp;<span class="pill-count">${sel.length}</span>` : ' ▾'}
                 <div class="admin-filter-dropdown" id="fdrop_privacy">
-                    ${opts.map(o => `
-                        <div class="admin-filter-option ${cur === o.v ? 'selected' : ''}"
-                             data-filter="privacy" data-val="${o.v}">
-                            <span class="filter-check">${cur === o.v ? '✓' : ''}</span>
-                            ${o.l}
+                    <div class="admin-filter-select-all" data-filter="privacy" data-action="selectall">
+                        <span class="admin-checkbox ${allSel ? 'checked' : ''}">${allSel ? '✓' : ''}</span>
+                        Select All
+                    </div>
+                    ${opts.map(opt => `
+                        <div class="admin-filter-option ${sel.includes(opt) ? 'selected' : ''}"
+                             data-filter="privacy" data-val="${opt}">
+                            <span class="admin-checkbox ${sel.includes(opt) ? 'checked' : ''}">
+                                ${sel.includes(opt) ? '✓' : ''}
+                            </span>
+                            ${labels[opt]}
                         </div>`).join('')}
                 </div>
             </div>`;
@@ -4070,30 +4113,26 @@
                 <div class="admin-stat-card">
                     <div class="admin-stat-label">Total Ideas</div>
                     <div class="admin-stat-value">${total}</div>
-                    <div class="admin-stat-sub">all submissions</div>
                 </div>
                 <div class="admin-stat-card">
                     <div class="admin-stat-label">Under Review</div>
                     <div class="admin-stat-value">${underRev}</div>
-                    <div class="admin-stat-sub">being evaluated</div>
                 </div>
                 <div class="admin-stat-card">
                     <div class="admin-stat-label">Approved</div>
                     <div class="admin-stat-value">${approved}</div>
-                    <div class="admin-stat-sub">accepted ideas</div>
                 </div>
                 <div class="admin-stat-card">
                     <div class="admin-stat-label">Shipped</div>
                     <div class="admin-stat-value">${shipped}</div>
-                    <div class="admin-stat-sub">done / completed</div>
                 </div>
             </div>
 
             <div class="admin-controls">
-                ${buildMultiDropdown('status',  allStatuses, f.statuses,  'Status')}
-                ${buildMultiDropdown('team',    allTeams,    f.teams,     'Team')}
+                ${buildDropdown('status',  allStatuses, f.statuses,  'Status')}
+                ${buildDropdown('team',    allTeams,    f.teams,     'Team')}
                 ${buildPrivacyDropdown()}
-                ${buildMultiDropdown('creator', allCreators, f.creators,  'Creator')}
+                ${buildDropdown('creator', allCreators, f.creators,  'Creator')}
                 <div class="admin-controls-right">
                     <button class="admin-groupby-btn ${adminState.groupBy === 'team' ? 'active' : ''}" id="adminGroupByBtn">
                         Group: ${adminState.groupBy === 'team' ? 'Teams' : 'Status'}
@@ -4107,10 +4146,10 @@
 
             <div id="adminViewContainer"></div>`;
 
-        // Wire filter pill toggles
+        // Wire pill open/close
         document.querySelectorAll('.admin-filter-pill').forEach(pill => {
             pill.addEventListener('click', e => {
-                if (e.target.closest('.admin-filter-option')) return;
+                if (e.target.closest('.admin-filter-option') || e.target.closest('.admin-filter-select-all')) return;
                 const dropId = pill.id.replace('fpill_', 'fdrop_');
                 const drop = $(dropId);
                 if (!drop) return;
@@ -4122,19 +4161,23 @@
             });
         });
 
+        // Select All
+        document.querySelectorAll('.admin-filter-select-all').forEach(el => {
+            el.addEventListener('click', e => {
+                const arr = getArr(el.dataset.filter);
+                arr.length = 0;
+                renderAdminDashboard();
+                e.stopPropagation();
+            });
+        });
+
+        // Individual option toggle
         document.querySelectorAll('.admin-filter-option').forEach(opt => {
             opt.addEventListener('click', e => {
-                const ft  = opt.dataset.filter;
+                const arr = getArr(opt.dataset.filter);
                 const val = opt.dataset.val;
-                if (ft === 'privacy') {
-                    adminState.filters.privacy = val;
-                } else {
-                    const arr = ft === 'status' ? adminState.filters.statuses
-                              : ft === 'team'   ? adminState.filters.teams
-                              :                   adminState.filters.creators;
-                    const idx = arr.indexOf(val);
-                    if (idx >= 0) arr.splice(idx, 1); else arr.push(val);
-                }
+                const idx = arr.indexOf(val);
+                if (idx >= 0) arr.splice(idx, 1); else arr.push(val);
                 renderAdminDashboard();
                 e.stopPropagation();
             });
@@ -4269,23 +4312,61 @@
     // ── LIST VIEW ──
     function renderAdminList() {
         const ideas     = getFilteredIdeas();
+        const s         = adminState.listSort;
         const container = $('adminViewContainer');
+
+        const sorted = [...ideas].sort((a, b) => {
+            let va, vb;
+            switch (s.col) {
+                case 'title':
+                    va = deriveTitle(a.description || '').toLowerCase();
+                    vb = deriveTitle(b.description || '').toLowerCase(); break;
+                case 'status':
+                    va = (a.status || 'New').toLowerCase();
+                    vb = (b.status || 'New').toLowerCase(); break;
+                case 'team':
+                    va = (a.team || a.your_team || '').toLowerCase();
+                    vb = (b.team || b.your_team || '').toLowerCase(); break;
+                case 'submitter':
+                    va = (a.submitter_name || a.submitter_email || '').toLowerCase();
+                    vb = (b.submitter_name || b.submitter_email || '').toLowerCase(); break;
+                case 'visibility':
+                    va = a.is_private ? 1 : 0;
+                    vb = b.is_private ? 1 : 0; break;
+                case 'votes':
+                    va = a.votes || 0; vb = b.votes || 0; break;
+                default: // date
+                    va = a.created_at ? new Date(a.created_at).getTime() : 0;
+                    vb = b.created_at ? new Date(b.created_at).getTime() : 0;
+            }
+            if (va < vb) return s.dir === 'asc' ? -1 : 1;
+            if (va > vb) return s.dir === 'asc' ?  1 : -1;
+            return 0;
+        });
+
+        function th(col, label) {
+            const isActive = s.col === col;
+            const arrow = isActive ? (s.dir === 'asc' ? '↑' : '↓') : '↕';
+            const arrowCls = isActive ? 'sort-arrow active' : 'sort-arrow';
+            return `<th class="sortable" data-col="${col}">${label} <span class="${arrowCls}">${arrow}</span></th>`;
+        }
+
         container.innerHTML = `
             <div class="admin-section-card">
                 <table class="admin-list-table">
                     <thead>
                         <tr>
-                            <th>Title</th>
-                            <th>Status</th>
-                            <th>Team</th>
-                            <th>Submitted By</th>
-                            <th>Visibility</th>
-                            <th>Votes</th>
-                            <th>Date</th>
+                            ${th('title','Title')}
+                            ${th('status','Status')}
+                            ${th('team','Team')}
+                            ${th('submitter','Submitted By')}
+                            ${th('visibility','Visibility')}
+                            ${th('votes','Votes')}
+                            ${th('date','Date')}
                         </tr>
                     </thead>
                     <tbody>
-                        ${ideas.length ? ideas.map(p => {
+                        ${sorted.length ? sorted.map(p => {
                             const title     = esc(deriveTitle(p.description || ''));
                             const status    = p.status || 'New';
                             const team      = esc(p.team || p.your_team || '—');
@@ -4309,6 +4390,15 @@
                     </tbody>
                 </table>
             </div>`;
+
+        container.querySelectorAll('th.sortable').forEach(thEl => {
+            thEl.addEventListener('click', () => {
+                const col = thEl.dataset.col;
+                if (s.col === col) s.dir = s.dir === 'asc' ? 'desc' : 'asc';
+                else { s.col = col; s.dir = 'asc'; }
+                renderAdminList();
+            });
+        });
 
         container.querySelectorAll('.admin-list-row').forEach(row => {
             row.addEventListener('click', () => openAdminProjectDetail(row.dataset.id));
