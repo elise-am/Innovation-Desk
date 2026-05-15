@@ -1804,8 +1804,12 @@
             border-right: 1px solid rgba(14,119,116,0.15);
         }
         .admin-sidebar-logo {
-            padding: 20px 18px 18px;
+            height: 56px;
+            padding: 0 18px;
+            display: flex;
+            align-items: center;
             border-bottom: 1px solid rgba(14,119,116,0.12);
+            flex-shrink: 0;
         }
         .admin-logo-mark { display: flex; align-items: center; gap: 10px; }
         .admin-logo-icon {
@@ -2587,11 +2591,6 @@
             <div class="admin-nav-item" id="adminNavProjects">
                 <span class="admin-nav-icon">☰</span> All Projects
             </div>
-            <div class="admin-nav-divider"></div>
-            <div class="admin-nav-section-label">Board</div>
-            <div class="admin-nav-item" id="adminNavBoard">
-                <span class="admin-nav-icon">◉</span> Public Board
-            </div>
         </div>
 
         <div class="admin-sidebar-user">
@@ -3312,15 +3311,16 @@
 
         try {
             const { data: inserted, error } = await supa.from('ideas').insert({
-                title:           description,
-                description:     description,
-                problem:         problem,
-                submitter_name:  name,
-                submitter_email: email,
-                team:            yourTeam,
-                is_private:      isPrivate,
-                status:          'Pending Approval',
-                votes:           0
+                title:             description,
+                description:       description,
+                problem:           problem,
+                submitter_name:    name,
+                submitter_email:   email,
+                team:              yourTeam,
+                beneficiary_teams: beneficiaryTeams.join(', '),
+                is_private:        isPrivate,
+                status:            'Pending Approval',
+                votes:             0
             }).select('id').single();
             if (error) throw error;
 
@@ -3886,14 +3886,19 @@
         const title     = esc(deriveTitle(p.description || ''));
         const status    = p.status || 'New';
         const taskCount = p.tasks?.[0]?.count ?? 0;
+        const submitter = esc(p.submitter_name || p.submitter_email || '—');
+        const email     = esc(p.submitter_email || '');
+        const team      = esc(p.team || p.your_team || '—');
+        const votes     = p.votes || 0;
         return `
             <div class="admin-project-row" data-id="${p.id}">
                 <div class="admin-project-info">
                     <div class="admin-project-name">${title}</div>
-                    <div class="admin-project-meta">
-                        ${esc(p.submitter_name || p.submitter_email || '—')}
-                        · ${esc(p.your_team || '—')}
-                        · ${taskCount} task${taskCount !== 1 ? 's' : ''}
+                    <div class="admin-project-meta" style="margin-top:5px;display:flex;gap:14px;flex-wrap:wrap;">
+                        <span style="color:var(--blue);font-weight:700;">${submitter}</span>
+                        <span style="color:var(--gray-400);">${team}</span>
+                        <span style="color:var(--gray-500);">${email}</span>
+                        <span style="color:var(--gray-500);">♥ ${votes}</span>
                     </div>
                 </div>
                 <div class="admin-project-right">
@@ -3912,16 +3917,16 @@
         $('adminPageTitle').textContent = 'Project Detail';
         document.querySelectorAll('.admin-nav-item').forEach(i => i.classList.remove('active'));
         $('adminNavProjects').classList.add('active');
-        await loadProjectTasks(ideaId);
         renderProjectDetail(project);
     }
 
     function renderProjectDetail(project) {
-        const tasks  = adminState.tasks;
-        const done   = tasks.filter(t => t.status === 'done').length;
-        const pct    = tasks.length ? Math.round((done / tasks.length) * 100) : 0;
         const title  = esc(deriveTitle(project.description || ''));
         const status = project.status || 'New';
+        const team   = esc(project.team || project.your_team || '—');
+        const visibilityLabel = project.is_private ? 'Private' : 'Public';
+        const visibilityColor = project.is_private ? 'var(--amber)' : 'var(--blue)';
+        const beneficiaries   = (project.beneficiary_teams || '').split(',').map(t => t.trim()).filter(Boolean);
 
         $('adminContent').innerHTML = `
             <div class="admin-back-row">
@@ -3930,9 +3935,11 @@
             <div class="admin-project-detail-header">
                 <div>
                     <div class="admin-project-detail-title">${title}</div>
-                    <div class="admin-project-meta" style="margin-top:5px;">
-                        ${esc(project.submitter_name || project.submitter_email || '—')}
-                        · ${esc(project.your_team || '—')}
+                    <div class="admin-project-meta" style="margin-top:5px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+                        <span style="color:var(--blue);font-weight:700;">${esc(project.submitter_name || project.submitter_email || '—')}</span>
+                        <span style="color:var(--gray-400);">${team}</span>
+                        ${project.submitter_email ? `<span style="color:var(--gray-500);">${esc(project.submitter_email)}</span>` : ''}
+                        <span style="font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:2px 8px;border:1px solid ${visibilityColor};color:${visibilityColor};">${visibilityLabel}</span>
                     </div>
                 </div>
                 <select class="admin-status-select" id="adminStatusSelect">
@@ -3940,13 +3947,6 @@
                         `<option value="${s}" ${status === s ? 'selected' : ''}>${s}</option>`
                     ).join('')}
                 </select>
-            </div>
-
-            <div class="admin-progress-bar-wrap">
-                <div class="admin-progress-label">${done} / ${tasks.length} tasks completed · ${pct}%</div>
-                <div class="admin-progress-track">
-                    <div class="admin-progress-fill" style="width:${pct}%"></div>
-                </div>
             </div>
 
             ${status === 'Pending Approval' ? `
@@ -3963,22 +3963,6 @@
 
             <div class="admin-section-card" style="margin-top:16px;">
                 <div class="admin-section-header">
-                    <span class="admin-section-title">Tasks</span>
-                    <span class="admin-section-count">${tasks.length} total</span>
-                </div>
-                ${tasks.map(buildAdminTaskRow).join('') || '<div class="admin-empty">No tasks yet — add one below.</div>'}
-                <div class="admin-add-task-form">
-                    <input type="text" class="admin-task-input" id="newTaskTitle" placeholder="New task title…" />
-                    <select class="admin-task-assign" id="newTaskAssign">
-                        <option value="eliseam@byblosvista.com">Elise</option>
-                        <option value="jordan@byblosvista.com">Jordan</option>
-                    </select>
-                    <button class="admin-task-add-btn" id="addTaskBtn">+ Add Task</button>
-                </div>
-            </div>
-
-            <div class="admin-section-card" style="margin-top:16px;">
-                <div class="admin-section-header">
                     <span class="admin-section-title">Idea Description</span>
                 </div>
                 <div style="padding:16px 18px; font-size:13px; color:var(--gray-200); line-height:1.75;">
@@ -3991,6 +3975,14 @@
                 <div style="padding:16px 18px; font-size:13px; color:var(--gray-200); line-height:1.75;">
                     ${esc(project.problem)}
                 </div>` : ''}
+                <div class="admin-section-header" style="border-top:1px solid rgba(14,119,116,0.12);">
+                    <span class="admin-section-title">Teams That Benefit</span>
+                </div>
+                <div style="padding:14px 18px;display:flex;flex-wrap:wrap;gap:6px;">
+                    ${beneficiaries.length
+                        ? beneficiaries.map(t => `<span class="beneficiary-chip">${esc(t)}</span>`).join('')
+                        : '<span style="font-size:13px;color:var(--gray-500);">—</span>'}
+                </div>
             </div>
 
             <div class="admin-delete-row">
@@ -4018,23 +4010,6 @@
             };
         }
         $('adminStatusSelect').onchange = async (e) => { await updateIdeaStatus(project.id, e.target.value); };
-        $('addTaskBtn').onclick = async () => {
-            const title      = $('newTaskTitle').value.trim();
-            const assignedTo = $('newTaskAssign').value;
-            if (!title) return;
-            $('newTaskTitle').value = '';
-            await createTask(project.id, title, assignedTo);
-        };
-        $('newTaskTitle').addEventListener('keydown', async (e) => {
-            if (e.key !== 'Enter') return;
-            const title = $('newTaskTitle').value.trim();
-            if (!title) return;
-            $('newTaskTitle').value = '';
-            await createTask(project.id, title, $('newTaskAssign').value);
-        });
-        document.querySelectorAll('.admin-task-status-btn').forEach(btn => {
-            btn.onclick = () => updateTaskStatus(btn.dataset.id, btn.dataset.next);
-        });
 
         $('deleteBoardBtn').onclick = () => {
             showConfirm({
@@ -4131,7 +4106,6 @@
     $('adminLogoutBtn').addEventListener('click', adminLogout);
     $('adminNavDashboard').addEventListener('click', () => loadAdminProjects().then(renderAdminDashboard));
     $('adminNavProjects').addEventListener('click',  () => loadAdminProjects().then(renderAdminDashboard));
-    $('adminNavBoard').addEventListener('click', () => { $('adminOverlay').classList.remove('open'); });
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && $('adminLoginBackdrop').classList.contains('open')) closeAdminLogin();
         if (e.key === 'Escape') closeConfirm();
