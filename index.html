@@ -1792,10 +1792,29 @@
         /* ══════════ ADMIN OVERLAY ══════════ */
         .admin-overlay {
             position: fixed; inset: 0; z-index: 200;
-            display: none; font-family: Inter, Manrope, Avenir, sans-serif;
+            display: none; flex-direction: column;
+            font-family: Inter, Manrope, Avenir, sans-serif;
             background: var(--bg);
         }
         .admin-overlay.open { display: flex; }
+
+        /* unified header */
+        .admin-header {
+            height: 56px; flex-shrink: 0;
+            background: #061618;
+            border-bottom: 1px solid rgba(14,119,116,0.15);
+            display: flex; align-items: center;
+            padding: 0 20px 0 18px; gap: 0;
+        }
+        .admin-header-divider {
+            width: 1px; height: 24px;
+            background: rgba(14,119,116,0.25);
+            margin: 0 20px;
+            flex-shrink: 0;
+        }
+        .admin-body {
+            flex: 1; display: flex; overflow: hidden;
+        }
 
         /* sidebar */
         .admin-sidebar {
@@ -1868,12 +1887,6 @@
 
         /* main area */
         .admin-main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-        .admin-topbar {
-            height: 56px; background: #061618;
-            border-bottom: 1px solid rgba(14,119,116,0.15);
-            padding: 0 24px; display: flex; align-items: center; gap: 12px;
-            flex-shrink: 0;
-        }
         .admin-topbar-user {
             margin-left: auto;
             display: flex; align-items: center; gap: 12px;
@@ -2051,6 +2064,131 @@
             white-space: nowrap; transition: background 0.15s;
         }
         .admin-task-add-btn:hover { background: var(--blue-dark); }
+
+        /* ── ADMIN NO-SIDEBAR LAYOUT ── */
+        .admin-sidebar { display: none !important; }
+        .admin-main { width: 100%; }
+        .admin-stats-row-4 {
+            display: grid; grid-template-columns: repeat(4, 1fr);
+            gap: 12px; margin-bottom: 20px;
+        }
+
+        /* ── ADMIN CONTROL BAR ── */
+        .admin-controls {
+            display: flex; align-items: center; gap: 8px;
+            padding: 0 0 14px; flex-wrap: wrap;
+        }
+        .admin-filter-pill {
+            display: flex; align-items: center; gap: 6px;
+            padding: 6px 12px; background: var(--bg-card);
+            border: 1px solid rgba(14,119,116,0.2);
+            font-size: 11px; font-weight: 600; color: var(--gray-400);
+            cursor: pointer; position: relative; user-select: none;
+            transition: all 0.15s; white-space: nowrap;
+        }
+        .admin-filter-pill:hover { border-color: var(--blue); color: var(--white); }
+        .admin-filter-pill.active { border-color: var(--blue); color: var(--blue); background: rgba(14,119,116,0.1); }
+        .admin-filter-pill .pill-count {
+            background: var(--blue); color: #000;
+            font-size: 9px; font-weight: 800; padding: 1px 5px;
+            min-width: 16px; text-align: center; line-height: 1.4;
+        }
+        .admin-filter-dropdown {
+            position: absolute; top: calc(100% + 4px); left: 0; z-index: 400;
+            background: #0D1C1D; border: 1px solid rgba(14,119,116,0.3);
+            min-width: 180px; max-height: 260px; overflow-y: auto;
+            display: none; box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+        .admin-filter-dropdown.open { display: block; }
+        .admin-filter-option {
+            padding: 8px 12px; font-size: 12px; cursor: pointer;
+            color: var(--gray-400); display: flex; align-items: center; gap: 8px;
+            transition: background 0.12s;
+        }
+        .admin-filter-option:hover { background: rgba(14,119,116,0.1); color: var(--white); }
+        .admin-filter-option.selected { color: var(--blue); }
+        .admin-filter-option .filter-check { width: 14px; font-size: 10px; flex-shrink: 0; }
+        .admin-controls-right { margin-left: auto; display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+        .admin-view-toggle { display: flex; border: 1px solid rgba(14,119,116,0.2); }
+        .admin-view-btn {
+            padding: 6px 14px; background: none; border: none;
+            font-size: 11px; font-weight: 700; color: var(--gray-500);
+            cursor: pointer; font-family: Inter, sans-serif; transition: all 0.15s;
+        }
+        .admin-view-btn + .admin-view-btn { border-left: 1px solid rgba(14,119,116,0.2); }
+        .admin-view-btn.active { background: var(--blue); color: #000; }
+        .admin-groupby-btn {
+            padding: 6px 12px; background: var(--bg-card);
+            border: 1px solid rgba(14,119,116,0.2);
+            font-size: 11px; font-weight: 700; color: var(--gray-500);
+            cursor: pointer; font-family: Inter, sans-serif; transition: all 0.15s;
+        }
+        .admin-groupby-btn.active { border-color: var(--blue); color: var(--blue); background: rgba(14,119,116,0.1); }
+
+        /* ── ADMIN KANBAN ── */
+        .admin-kanban {
+            display: flex; gap: 12px;
+            overflow-x: auto; padding-bottom: 16px; align-items: flex-start;
+        }
+        .admin-kanban::-webkit-scrollbar { height: 6px; }
+        .admin-kanban::-webkit-scrollbar-track { background: rgba(255,255,255,0.03); }
+        .admin-kanban::-webkit-scrollbar-thumb { background: rgba(14,119,116,0.3); border-radius: 3px; }
+        .admin-kcolumn {
+            width: 230px; flex-shrink: 0;
+            background: var(--bg-card); border: 1px solid rgba(14,119,116,0.15);
+            display: flex; flex-direction: column;
+        }
+        .admin-kcolumn-header {
+            padding: 10px 12px; border-bottom: 1px solid rgba(14,119,116,0.12);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .admin-kcolumn-title {
+            font-size: 10px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase;
+        }
+        .admin-kcolumn-count { font-size: 11px; color: var(--gray-500); font-weight: 600; }
+        .admin-kcolumn-body { padding: 8px; display: flex; flex-direction: column; gap: 6px; min-height: 60px; }
+        .admin-kcard {
+            background: var(--bg-card-2); border: 1px solid rgba(255,255,255,0.06);
+            padding: 10px 12px; cursor: pointer; transition: border-color 0.15s, background 0.15s;
+        }
+        .admin-kcard:hover { border-color: rgba(14,119,116,0.4); background: rgba(14,119,116,0.05); }
+        .admin-kcard-title {
+            font-size: 12px; font-weight: 600; color: var(--white);
+            line-height: 1.35; margin-bottom: 6px;
+        }
+        .admin-kcard-meta { font-size: 10px; color: var(--gray-500); display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+        .admin-kcard-team { font-size: 10px; color: var(--blue); font-weight: 700; }
+        .admin-kcard-priv {
+            font-size: 9px; font-weight: 700; letter-spacing: 0.06em;
+            text-transform: uppercase; padding: 1px 5px; border: 1px solid; line-height: 1.4;
+        }
+        .admin-kcard-priv.private { border-color: rgba(240,160,75,0.5); color: var(--amber); }
+        .admin-kcard-priv.public { border-color: rgba(14,119,116,0.4); color: var(--blue); }
+        .admin-col-toggle-btn {
+            background: transparent; border: 1px solid rgba(255,255,255,0.08);
+            color: var(--gray-600); font-size: 10px; font-weight: 700;
+            letter-spacing: 0.06em; text-transform: uppercase;
+            padding: 3px 8px; cursor: pointer; font-family: Inter, sans-serif; transition: all 0.15s;
+        }
+        .admin-col-toggle-btn:hover { border-color: rgba(14,119,116,0.4); color: var(--gray-400); }
+        .admin-col-toggle-btn.on { border-color: var(--current-col-color, var(--blue)); color: var(--current-col-color, var(--blue)); }
+
+        /* ── ADMIN LIST VIEW ── */
+        .admin-list-table { width: 100%; border-collapse: collapse; }
+        .admin-list-table th {
+            font-size: 10px; font-weight: 700; letter-spacing: 0.14em;
+            text-transform: uppercase; color: var(--gray-500);
+            padding: 10px 14px; text-align: left;
+            border-bottom: 1px solid rgba(14,119,116,0.15);
+            background: var(--bg-card); white-space: nowrap;
+        }
+        .admin-list-table td {
+            padding: 11px 14px; font-size: 12px; color: var(--gray-300);
+            border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle;
+        }
+        .admin-list-table tr.admin-list-row { cursor: pointer; transition: background 0.12s; }
+        .admin-list-table tr.admin-list-row:hover td { background: rgba(14,119,116,0.05); }
+        .admin-list-table tr.admin-list-row:last-child td { border-bottom: none; }
 
         /* ══════════ FOCUS / VIEW MODES ══════════ */
 
@@ -2573,45 +2711,45 @@
 <!-- ── ADMIN OVERLAY ── -->
 <div class="admin-overlay" id="adminOverlay">
 
-    <!-- Sidebar -->
-    <div class="admin-sidebar">
-        <div class="admin-sidebar-logo">
-            <div class="admin-logo-mark">
-                <img src="Logo.png" alt="Byblos Vista" style="width:32px;height:32px;object-fit:contain;flex-shrink:0;" />
-                <div>
-                    <div class="admin-logo-name">BYBLOS <span>VISTA</span></div>
-                    <div class="admin-logo-sub">Innovation Desk</div>
-                </div>
+    <!-- Full-width header -->
+    <div class="admin-header">
+        <div class="admin-logo-mark">
+            <img src="Logo.png" alt="Byblos Vista" style="width:32px;height:32px;object-fit:contain;flex-shrink:0;" />
+            <div>
+                <div class="admin-logo-name">BYBLOS <span>VISTA</span></div>
+                <div class="admin-logo-sub">Innovation Desk</div>
             </div>
         </div>
-
-        <div class="admin-sidebar-nav">
-            <div class="admin-nav-section-label">Workspace</div>
-            <div class="admin-nav-item active" id="adminNavDashboard">
-                <span class="admin-nav-icon">⊞</span> Dashboard
+        <div class="admin-header-divider"></div>
+        <div class="admin-page-title" id="adminPageTitle">Dashboard</div>
+        <div class="admin-topbar-user">
+            <div class="admin-avatar" id="adminAvatarInitials">—</div>
+            <div class="admin-user-info">
+                <div class="admin-user-name" id="adminUserName">—</div>
+                <div class="admin-user-role">Innovation Admin</div>
             </div>
-            <div class="admin-nav-item" id="adminNavProjects">
-                <span class="admin-nav-icon">☰</span> All Projects
-            </div>
+            <button class="admin-logout-btn" id="adminLogoutBtn" title="Sign out">⏻</button>
         </div>
-
     </div>
 
-    <!-- Main -->
-    <div class="admin-main">
-        <div class="admin-topbar">
-            <div class="admin-page-title" id="adminPageTitle">Dashboard</div>
-            <div class="admin-topbar-user">
-                <div class="admin-avatar" id="adminAvatarInitials">—</div>
-                <div class="admin-user-info">
-                    <div class="admin-user-name" id="adminUserName">—</div>
-                    <div class="admin-user-role">Innovation Admin</div>
+    <!-- Body: sidebar + content -->
+    <div class="admin-body">
+        <div class="admin-sidebar">
+            <div class="admin-sidebar-nav">
+                <div class="admin-nav-section-label">Workspace</div>
+                <div class="admin-nav-item active" id="adminNavDashboard">
+                    <span class="admin-nav-icon">⊞</span> Dashboard
                 </div>
-                <button class="admin-logout-btn" id="adminLogoutBtn" title="Sign out">⏻</button>
+                <div class="admin-nav-item" id="adminNavProjects">
+                    <span class="admin-nav-icon">☰</span> All Projects
+                </div>
             </div>
         </div>
-        <div class="admin-content" id="adminContent">
-            <div class="admin-empty" style="padding:40px; text-align:center;">Loading…</div>
+
+        <div class="admin-main">
+            <div class="admin-content" id="adminContent">
+                <div class="admin-empty" style="padding:40px; text-align:center;">Loading…</div>
+            </div>
         </div>
     </div>
 </div>
@@ -3742,7 +3880,13 @@
 
     let supa = null;
     let adminUser = null;
-    let adminState = { view: 'dashboard', selectedProject: null, projects: [], tasks: [] };
+    let adminState = {
+        view: 'dashboard', selectedProject: null, projects: [], tasks: [],
+        boardView: true, groupBy: 'status',
+        visibleStatuses: null,  // null = all visible; Set when user toggles
+        visibleTeams: null,     // null = all visible; Set when user toggles
+        filters: { statuses: [], teams: [], privacy: 'all', creators: [] }
+    };
 
     function initSupabase() {
         if (window.supabase) {
@@ -3841,59 +3985,340 @@
         if (p) p.status = newStatus;
     }
 
+    // ── STATUS COLUMN COLOR MAP ──
+    function statusColumnColor(status) {
+        const map = {
+            'Pending Approval': 'var(--amber)',
+            'New':              'var(--gray-400)',
+            'Under Review':     'var(--blue)',
+            'Approved':         'var(--teal)',
+            'In Progress':      'var(--purple)',
+            'Done':             '#76bd79',
+            'On Hold':          'var(--gray-500)',
+            'Declined':         'var(--red)',
+        };
+        return map[status] || 'var(--gray-400)';
+    }
+
+    // ── FILTER HELPERS ──
+    function getFilteredIdeas() {
+        const f = adminState.filters;
+        return adminState.projects.filter(idea => {
+            if (f.statuses.length && !f.statuses.includes(idea.status)) return false;
+            const ideaTeam = idea.team || idea.your_team || '';
+            if (f.teams.length && !f.teams.includes(ideaTeam)) return false;
+            if (f.privacy === 'public'  &&  idea.is_private) return false;
+            if (f.privacy === 'private' && !idea.is_private) return false;
+            if (f.creators.length) {
+                const name = idea.submitter_name || idea.submitter_email || '';
+                if (!f.creators.includes(name)) return false;
+            }
+            return true;
+        });
+    }
+
     // ── RENDER DASHBOARD ──
     function renderAdminDashboard() {
         adminState.view = 'dashboard';
         adminState.selectedProject = null;
-        $('adminPageTitle').textContent = 'Dashboard';
-        document.querySelectorAll('.admin-nav-item').forEach(i => i.classList.remove('active'));
-        $('adminNavDashboard').classList.add('active');
+        $('adminPageTitle').textContent = 'All Ideas';
 
         const p = adminState.projects;
         const total    = p.length;
-        const active   = p.filter(x => ['in-progress','approved','in progress'].includes((x.status||'').toLowerCase())).length;
-        const pending  = p.filter(x => (x.status||'new').toLowerCase() === 'new').length;
+        const underRev = p.filter(x => (x.status||'').toLowerCase() === 'under review').length;
+        const approved = p.filter(x => (x.status||'').toLowerCase() === 'approved').length;
         const shipped  = p.filter(x => (x.status||'').toLowerCase() === 'done').length;
+        const f        = adminState.filters;
+
+        const allStatuses  = CONFIG.adminStatusOptions;
+        const allTeams     = [...new Set([...CONFIG.teamOptions, ...p.map(x => x.team || x.your_team || '').filter(Boolean)])].sort();
+        const allCreators  = [...new Set(p.map(x => x.submitter_name || x.submitter_email || '').filter(Boolean))].sort();
+
+        function buildMultiDropdown(id, options, selected, label) {
+            const hasFilter = selected.length > 0;
+            return `<div class="admin-filter-pill ${hasFilter ? 'active' : ''}" id="fpill_${id}">
+                ${label}${hasFilter ? `&nbsp;<span class="pill-count">${selected.length}</span>` : ' ▾'}
+                <div class="admin-filter-dropdown" id="fdrop_${id}">
+                    ${options.map(opt => `
+                        <div class="admin-filter-option ${selected.includes(opt) ? 'selected' : ''}"
+                             data-filter="${id}" data-val="${esc(opt)}">
+                            <span class="filter-check">${selected.includes(opt) ? '✓' : ''}</span>
+                            ${esc(opt)}
+                        </div>`).join('')}
+                </div>
+            </div>`;
+        }
+
+        function buildPrivacyDropdown() {
+            const opts = [{v:'all',l:'All'},{v:'public',l:'Public Only'},{v:'private',l:'Private Only'}];
+            const cur  = f.privacy;
+            return `<div class="admin-filter-pill ${cur !== 'all' ? 'active' : ''}" id="fpill_privacy">
+                Privacy${cur !== 'all' ? `&nbsp;<span class="pill-count">1</span>` : ' ▾'}
+                <div class="admin-filter-dropdown" id="fdrop_privacy">
+                    ${opts.map(o => `
+                        <div class="admin-filter-option ${cur === o.v ? 'selected' : ''}"
+                             data-filter="privacy" data-val="${o.v}">
+                            <span class="filter-check">${cur === o.v ? '✓' : ''}</span>
+                            ${o.l}
+                        </div>`).join('')}
+                </div>
+            </div>`;
+        }
 
         $('adminContent').innerHTML = `
-            <div class="admin-stats-row">
+            <div class="admin-stats-row-4">
                 <div class="admin-stat-card">
-                    <div class="admin-stat-label">Total Projects</div>
+                    <div class="admin-stat-label">Total Ideas</div>
                     <div class="admin-stat-value">${total}</div>
-                    <div class="admin-stat-sub">${active} active</div>
+                    <div class="admin-stat-sub">all submissions</div>
                 </div>
                 <div class="admin-stat-card">
-                    <div class="admin-stat-label">Pending Review</div>
-                    <div class="admin-stat-value">${pending}</div>
-                    <div class="admin-stat-sub">Awaiting action</div>
+                    <div class="admin-stat-label">Under Review</div>
+                    <div class="admin-stat-value">${underRev}</div>
+                    <div class="admin-stat-sub">being evaluated</div>
+                </div>
+                <div class="admin-stat-card">
+                    <div class="admin-stat-label">Approved</div>
+                    <div class="admin-stat-value">${approved}</div>
+                    <div class="admin-stat-sub">accepted ideas</div>
                 </div>
                 <div class="admin-stat-card">
                     <div class="admin-stat-label">Shipped</div>
                     <div class="admin-stat-value">${shipped}</div>
-                    <div class="admin-stat-sub">Done</div>
+                    <div class="admin-stat-sub">done / completed</div>
                 </div>
             </div>
+
+            <div class="admin-controls">
+                ${buildMultiDropdown('status',  allStatuses, f.statuses,  'Status')}
+                ${buildMultiDropdown('team',    allTeams,    f.teams,     'Team')}
+                ${buildPrivacyDropdown()}
+                ${buildMultiDropdown('creator', allCreators, f.creators,  'Creator')}
+                <div class="admin-controls-right">
+                    <button class="admin-groupby-btn ${adminState.groupBy === 'team' ? 'active' : ''}" id="adminGroupByBtn">
+                        Group: ${adminState.groupBy === 'team' ? 'Teams' : 'Status'}
+                    </button>
+                    <div class="admin-view-toggle">
+                        <button class="admin-view-btn ${adminState.boardView ? 'active' : ''}" id="adminBoardViewBtn">Board</button>
+                        <button class="admin-view-btn ${!adminState.boardView ? 'active' : ''}" id="adminListViewBtn">List</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="adminViewContainer"></div>`;
+
+        // Wire filter pill toggles
+        document.querySelectorAll('.admin-filter-pill').forEach(pill => {
+            pill.addEventListener('click', e => {
+                if (e.target.closest('.admin-filter-option')) return;
+                const dropId = pill.id.replace('fpill_', 'fdrop_');
+                const drop = $(dropId);
+                if (!drop) return;
+                document.querySelectorAll('.admin-filter-dropdown.open').forEach(d => {
+                    if (d.id !== dropId) d.classList.remove('open');
+                });
+                drop.classList.toggle('open');
+                e.stopPropagation();
+            });
+        });
+
+        document.querySelectorAll('.admin-filter-option').forEach(opt => {
+            opt.addEventListener('click', e => {
+                const ft  = opt.dataset.filter;
+                const val = opt.dataset.val;
+                if (ft === 'privacy') {
+                    adminState.filters.privacy = val;
+                } else {
+                    const arr = ft === 'status' ? adminState.filters.statuses
+                              : ft === 'team'   ? adminState.filters.teams
+                              :                   adminState.filters.creators;
+                    const idx = arr.indexOf(val);
+                    if (idx >= 0) arr.splice(idx, 1); else arr.push(val);
+                }
+                renderAdminDashboard();
+                e.stopPropagation();
+            });
+        });
+
+        document.addEventListener('click', function closeDrops() {
+            document.querySelectorAll('.admin-filter-dropdown.open').forEach(d => d.classList.remove('open'));
+            document.removeEventListener('click', closeDrops);
+        });
+
+        $('adminGroupByBtn').addEventListener('click', () => {
+            adminState.groupBy = adminState.groupBy === 'status' ? 'team' : 'status';
+            renderAdminDashboard();
+        });
+        $('adminBoardViewBtn').addEventListener('click', () => { adminState.boardView = true;  renderAdminDashboard(); });
+        $('adminListViewBtn').addEventListener('click',  () => { adminState.boardView = false; renderAdminDashboard(); });
+
+        if (adminState.boardView) renderAdminBoard();
+        else renderAdminList();
+    }
+
+    // ── KANBAN BOARD ──
+    function buildAdminKCard(p) {
+        const title     = esc(deriveTitle(p.description || ''));
+        const submitter = esc(p.submitter_name || p.submitter_email || '—');
+        const team      = esc(p.team || p.your_team || '—');
+        const votes     = p.votes || 0;
+        const privCls   = p.is_private ? 'private' : 'public';
+        const privLbl   = p.is_private ? 'Private' : 'Public';
+        return `<div class="admin-kcard" data-id="${p.id}">
+            <div class="admin-kcard-title">${title}</div>
+            <div class="admin-kcard-meta">
+                <span class="admin-kcard-team">${team}</span>
+                <span>${submitter}</span>
+                <span>♥ ${votes}</span>
+                <span class="admin-kcard-priv ${privCls}">${privLbl}</span>
+            </div>
+        </div>`;
+    }
+
+    function renderAdminBoard() {
+        const ideas     = getFilteredIdeas();
+        const container = $('adminViewContainer');
+
+        if (adminState.groupBy === 'status') {
+            const allStatuses = CONFIG.adminStatusOptions;
+            if (!adminState.visibleStatuses) adminState.visibleStatuses = new Set(allStatuses);
+            const vis = adminState.visibleStatuses;
+
+            const togglesHtml = allStatuses.map(st => {
+                const on = vis.has(st);
+                const color = statusColumnColor(st);
+                return `<button class="admin-col-toggle-btn" data-kind="status" data-val="${esc(st)}"
+                    style="${on ? `border-color:${color};color:${color};` : ''}">${esc(st)}</button>`;
+            }).join('');
+
+            const colsHtml = allStatuses.filter(st => vis.has(st)).map(st => {
+                const colIdeas = ideas.filter(i => (i.status || 'New') === st);
+                const color = statusColumnColor(st);
+                return `<div class="admin-kcolumn">
+                    <div class="admin-kcolumn-header">
+                        <span class="admin-kcolumn-title" style="color:${color};">${esc(st)}</span>
+                        <span class="admin-kcolumn-count">${colIdeas.length}</span>
+                    </div>
+                    <div class="admin-kcolumn-body">
+                        ${colIdeas.length ? colIdeas.map(buildAdminKCard).join('') : '<div style="font-size:11px;color:var(--gray-700);padding:4px 2px;font-style:italic;">Empty</div>'}
+                    </div>
+                </div>`;
+            }).join('');
+
+            container.innerHTML = `
+                <div style="margin-bottom:10px;display:flex;gap:5px;flex-wrap:wrap;align-items:center;">
+                    <span style="font-size:10px;color:var(--gray-600);font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-right:4px;flex-shrink:0;">Columns:</span>
+                    ${togglesHtml}
+                </div>
+                <div class="admin-kanban">${colsHtml}</div>`;
+
+        } else {
+            const allTeams = [...new Set([...CONFIG.teamOptions, ...adminState.projects.map(x => x.team || x.your_team || '').filter(Boolean)])].sort();
+            if (!adminState.visibleTeams) adminState.visibleTeams = new Set(allTeams);
+            const vis = adminState.visibleTeams;
+
+            const togglesHtml = allTeams.map(tm => {
+                const on = vis.has(tm);
+                return `<button class="admin-col-toggle-btn" data-kind="team" data-val="${esc(tm)}"
+                    style="${on ? 'border-color:var(--blue);color:var(--blue);' : ''}">${esc(tm)}</button>`;
+            }).join('');
+
+            const colsHtml = allTeams.filter(tm => vis.has(tm)).map(tm => {
+                const colIdeas = ideas.filter(i => (i.team || i.your_team || '') === tm);
+                return `<div class="admin-kcolumn">
+                    <div class="admin-kcolumn-header">
+                        <span class="admin-kcolumn-title" style="color:var(--blue);">${esc(tm)}</span>
+                        <span class="admin-kcolumn-count">${colIdeas.length}</span>
+                    </div>
+                    <div class="admin-kcolumn-body">
+                        ${colIdeas.length ? colIdeas.map(buildAdminKCard).join('') : '<div style="font-size:11px;color:var(--gray-700);padding:4px 2px;font-style:italic;">Empty</div>'}
+                    </div>
+                </div>`;
+            }).join('');
+
+            container.innerHTML = `
+                <div style="margin-bottom:10px;display:flex;gap:5px;flex-wrap:wrap;align-items:center;">
+                    <span style="font-size:10px;color:var(--gray-600);font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-right:4px;flex-shrink:0;">Teams:</span>
+                    ${togglesHtml}
+                </div>
+                <div class="admin-kanban">${colsHtml}</div>`;
+        }
+
+        // Wire column toggle buttons
+        container.querySelectorAll('.admin-col-toggle-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const kind = btn.dataset.kind;
+                const val  = btn.dataset.val;
+                if (kind === 'status') {
+                    if (adminState.visibleStatuses.has(val)) adminState.visibleStatuses.delete(val);
+                    else adminState.visibleStatuses.add(val);
+                } else {
+                    if (adminState.visibleTeams.has(val)) adminState.visibleTeams.delete(val);
+                    else adminState.visibleTeams.add(val);
+                }
+                renderAdminBoard();
+            });
+        });
+
+        // Wire card clicks
+        container.querySelectorAll('.admin-kcard').forEach(card => {
+            card.addEventListener('click', () => openAdminProjectDetail(card.dataset.id));
+        });
+    }
+
+    // ── LIST VIEW ──
+    function renderAdminList() {
+        const ideas     = getFilteredIdeas();
+        const container = $('adminViewContainer');
+        container.innerHTML = `
             <div class="admin-section-card">
-                <div class="admin-section-header">
-                    <span class="admin-section-title">All Projects</span>
-                    <span class="admin-section-count">${total} total</span>
-                </div>
-                <div id="adminProjectsList">
-                    ${p.length ? p.map(buildAdminProjectRow).join('') : '<div class="admin-empty">No ideas submitted yet.</div>'}
-                </div>
+                <table class="admin-list-table">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Status</th>
+                            <th>Team</th>
+                            <th>Submitted By</th>
+                            <th>Visibility</th>
+                            <th>Votes</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${ideas.length ? ideas.map(p => {
+                            const title     = esc(deriveTitle(p.description || ''));
+                            const status    = p.status || 'New';
+                            const team      = esc(p.team || p.your_team || '—');
+                            const submitter = esc(p.submitter_name || p.submitter_email || '—');
+                            const privLbl   = p.is_private ? 'Private' : 'Public';
+                            const privColor = p.is_private ? 'var(--amber)' : 'var(--blue)';
+                            const votes     = p.votes || 0;
+                            const date      = p.created_at
+                                ? new Date(p.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})
+                                : '—';
+                            return `<tr class="admin-list-row" data-id="${p.id}">
+                                <td style="font-weight:600;color:var(--white);max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${title}</td>
+                                <td><span class="status-badge status-${statusKey(status)}">${esc(status)}</span></td>
+                                <td style="color:var(--blue);font-weight:600;">${team}</td>
+                                <td>${submitter}</td>
+                                <td><span style="font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:2px 7px;border:1px solid ${privColor};color:${privColor};">${privLbl}</span></td>
+                                <td>♥ ${votes}</td>
+                                <td style="color:var(--gray-500);">${date}</td>
+                            </tr>`;
+                        }).join('') : '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--gray-600);font-style:italic;">No ideas found.</td></tr>'}
+                    </tbody>
+                </table>
             </div>`;
 
-        document.querySelectorAll('.admin-project-row').forEach(row => {
-            row.onclick = () => openAdminProjectDetail(row.dataset.id);
+        container.querySelectorAll('.admin-list-row').forEach(row => {
+            row.addEventListener('click', () => openAdminProjectDetail(row.dataset.id));
         });
     }
 
     function buildAdminProjectRow(p) {
         const title     = esc(deriveTitle(p.description || ''));
         const status    = p.status || 'New';
-        const taskCount = p.tasks?.[0]?.count ?? 0;
         const submitter = esc(p.submitter_name || p.submitter_email || '—');
-        const email     = esc(p.submitter_email || '');
         const team      = esc(p.team || p.your_team || '—');
         const votes     = p.votes || 0;
         return `
@@ -3903,7 +4328,6 @@
                     <div class="admin-project-meta" style="margin-top:5px;display:flex;gap:14px;flex-wrap:wrap;">
                         <span style="color:var(--blue);font-weight:700;">${submitter}</span>
                         <span style="color:var(--gray-400);">${team}</span>
-                        <span style="color:var(--gray-500);">${email}</span>
                         <span style="color:var(--gray-500);">♥ ${votes}</span>
                     </div>
                 </div>
@@ -3920,9 +4344,7 @@
         if (!project) return;
         adminState.selectedProject = project;
         adminState.view = 'project';
-        $('adminPageTitle').textContent = 'Project Detail';
-        document.querySelectorAll('.admin-nav-item').forEach(i => i.classList.remove('active'));
-        $('adminNavProjects').classList.add('active');
+        $('adminPageTitle').textContent = 'Idea Detail';
         renderProjectDetail(project);
     }
 
@@ -3938,7 +4360,7 @@
 
         $('adminContent').innerHTML = `
             <div class="admin-back-row">
-                <button class="admin-back-btn" id="adminBackBtn">← Back to Projects</button>
+                <button class="admin-back-btn" id="adminBackBtn">← Back to All Ideas</button>
             </div>
             <div class="admin-project-detail-header">
                 <div>
@@ -4124,8 +4546,6 @@
         else                           { input.type = 'password'; btn.textContent = 'Show'; }
     });
     $('adminLogoutBtn').addEventListener('click', adminLogout);
-    $('adminNavDashboard').addEventListener('click', () => loadAdminProjects().then(renderAdminDashboard));
-    $('adminNavProjects').addEventListener('click',  () => loadAdminProjects().then(renderAdminDashboard));
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && $('adminLoginBackdrop').classList.contains('open')) closeAdminLogin();
         if (e.key === 'Escape') closeConfirm();
